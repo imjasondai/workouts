@@ -16,15 +16,15 @@ const getBasePath = () => {
 };
 
 const data: ISiteMetadataResult = {
-  siteTitle: 'Workouts Map',
-  siteUrl: 'https://zhaohongxuan.github.io',
-  logo: 'https://avatars.githubusercontent.com/u/8613196?v=4',
-  description: 'Personal site and blog',
-  keywords: 'workouts, running, cycling, riding, roadtrip, hiking, swimming',
+  siteTitle: "Jason's Workout Dashboard",
+  siteUrl: 'https://imjasondai.github.io/workouts/',
+  logo: 'https://github.com/imjasondai.png',
+  description: "Jason Dai's personal workout dashboard",
+  keywords: 'workouts, running, cycling, hiking, swimming, strength training',
   navLinks: [
     {
       name: 'Strava',
-      url: 'https://www.strava.com/athletes/hank_zhao',
+      url: 'https://www.strava.com/athletes/ssaffybz',
     },
     {
       name: 'Summary',
@@ -32,7 +32,7 @@ const data: ISiteMetadataResult = {
     },
     {
       name: 'Blog',
-      url: 'https://zhaohongxuan.github.io',
+      url: 'https://github.com/imjasondai',
     },
   ],
 };
