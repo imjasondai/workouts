@@ -152,7 +152,7 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
         {/* Logo */}
         <div className="flex items-center gap-2">
           <span className="text-xl font-bold text-[var(--color-text)]">
-            WORKOUT<span className="text-[var(--color-run)]">.</span>LOG
+            JASON<span className="text-[var(--color-run)]">.</span>LOG
           </span>
         </div>
 
