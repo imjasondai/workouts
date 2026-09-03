@@ -119,7 +119,7 @@ function TrackMap({ activity, activities, dark }: {
     mapReady.current = false
     map.current = new maplibregl.Map({ container: mapContainer.current, style, center: [108, 35], zoom: 3 })
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
-    map.current.on('style.load', () => {
+    map.current.on('load', () => {
       mapReady.current = true
       updateRoutes.current()
     })
