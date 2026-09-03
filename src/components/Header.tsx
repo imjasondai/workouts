@@ -2,7 +2,7 @@ import type { SportFilter, Activity } from '../types'
 import { WORKOUT_TYPES } from '../types'
 import { useLocale } from '../hooks/useLocale'
 
-type Page = 'home' | 'tracks'
+type Page = 'home' | 'tracks' | 'checkin'
 
 interface HeaderProps {
   filter: SportFilter
