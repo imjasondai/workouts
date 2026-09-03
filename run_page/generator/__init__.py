@@ -56,7 +56,7 @@ class Generator:
         print("Start syncing")
         if force:
             # filters = {"before": datetime.datetime.utcnow()}
-            filters = {"after": datetime.strptime("2022-01-01", "%Y-%m-%d")}
+            filters = {"after": datetime.datetime.strptime("2022-01-01", "%Y-%m-%d")}
         else:
             last_activity = self.session.query(func.max(Activity.start_date)).scalar()
             if last_activity:
@@ -66,7 +66,7 @@ class Generator:
             else:
                 filters = {
                     "before": datetime.datetime.utcnow(),
-                    "after": datetime.strptime("2022-01-01", "%Y-%m-%d"),
+                    "after": datetime.datetime.strptime("2022-01-01", "%Y-%m-%d"),
                 }
 
         for activity in self.client.get_activities(**filters):
