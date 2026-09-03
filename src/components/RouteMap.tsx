@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import * as polyline from '@mapbox/polyline'
 import type { Activity } from '../types'
+import chinaProvinces from '../assets/china-provinces.json'
 
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
@@ -10,11 +11,12 @@ const MAPBOX_TOKEN =
 interface RouteMapProps {
   activities: Activity[]
   selectedActivity?: Activity | null
+  selectedProvince?: string | null
   dark?: boolean
   onClearSelection?: () => void
 }
 
-export function RouteMap({ activities, selectedActivity, dark, onClearSelection }: RouteMapProps) {
+export function RouteMap({ activities, selectedActivity, selectedProvince, dark, onClearSelection }: RouteMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
 
@@ -57,7 +59,7 @@ export function RouteMap({ activities, selectedActivity, dark, onClearSelection 
     } else {
       map.current?.once('style.load', () => updateRoutes())
     }
-  }, [activities, selectedActivity])
+  }, [activities, selectedActivity, selectedProvince])
 
   function updateRoutes() {
     if (!map.current) return
@@ -144,6 +146,46 @@ export function RouteMap({ activities, selectedActivity, dark, onClearSelection 
       },
     })
 
+
+    if (selectedProvince) {
+  const province = chinaProvinces.features.find(
+    feature => feature.properties.name === selectedProvince,
+  )
+
+  if (province) {
+    const provinceBounds = new mapboxgl.LngLatBounds()
+
+    function extendBounds(coordinates: unknown): void {
+      if (!Array.isArray(coordinates)) return
+
+      if (
+        coordinates.length >= 2 &&
+        typeof coordinates[0] === 'number' &&
+        typeof coordinates[1] === 'number'
+      ) {
+        provinceBounds.extend([
+          coordinates[0],
+          coordinates[1],
+        ] as [number, number])
+        return
+      }
+
+      for (const child of coordinates) {
+        extendBounds(child)
+      }
+    }
+
+    extendBounds(province.geometry.coordinates)
+
+    if (!provinceBounds.isEmpty()) {
+      map.current.fitBounds(provinceBounds, {
+        padding: 20,
+        maxZoom: 8,
+      })
+      return
+    }
+  }
+}
     // Fit bounds to majority of routes (ignore outliers)
     // Use median-based approach: find the region where most routes are
     const allCoords: [number, number][] = []
