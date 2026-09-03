@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { toPng } from 'html-to-image'
+import { toBlob } from 'html-to-image'
 import * as polyline from '@mapbox/polyline'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -226,6 +226,80 @@ export function TracksPage({ activities, onBack, onSelectActivity }: TracksPageP
     setSelectedActivity(prev => prev?.run_id === a.run_id ? null : a)
     onSelectActivity?.(a)
   }
+  const handleExport = async () => {
+  if (!captureRef.current || exporting) return
+
+  const element = captureRef.current
+  const previousOverflow = element.style.overflow
+  setExporting(true)
+
+  try {
+    element.classList.add('exporting')
+    element.style.overflow = 'visible'
+
+    await document.fonts.ready
+    await new Promise<void>(resolve =>
+      requestAnimationFrame(() => resolve()),
+    )
+
+    const computedBackground = getComputedStyle(element).backgroundColor
+    const blob = await toBlob(element, {
+      backgroundColor:
+        computedBackground === 'rgba(0, 0, 0, 0)' ||
+        computedBackground === 'transparent'
+          ? '#ffffff'
+          : computedBackground,
+      pixelRatio: 2,
+      width: element.scrollWidth,
+      height: element.scrollHeight,
+      cacheBust: false,
+      skipFonts: true,
+      filter: node => {
+        if (
+          node instanceof HTMLElement &&
+          node.hasAttribute('data-export-hidden')
+        ) {
+          return false
+        }
+
+        if (node instanceof HTMLImageElement) {
+          try {
+            return new URL(node.src).origin === window.location.origin
+          } catch {
+            return false
+          }
+        }
+
+        return true
+      },
+    })
+
+    if (!blob) throw new Error('Image generation returned no data')
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const label = selectedYear ?? 'all'
+    link.href = url
+    link.download = `tracks-${label}.png`
+    link.style.display = 'none'
+
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } catch (error) {
+    console.error('Export failed:', error)
+    window.alert(
+      locale === 'zh'
+        ? '图片导出失败，请刷新页面后重试。'
+        : 'Image export failed. Please refresh the page and try again.',
+    )
+  } finally {
+    element.classList.remove('exporting')
+    element.style.overflow = previousOverflow
+    setExporting(false)
+  }
+}
 
   const allSportTabs: { label: string; value: SportType; color: string }[] = [
     { label: locale === 'zh' ? '跑步' : 'Run', value: 'Run', color: '#f97316' },
@@ -382,30 +456,9 @@ export function TracksPage({ activities, onBack, onSelectActivity }: TracksPageP
               ))}
               <span className="w-px h-3 bg-[var(--color-border)] mx-1" />
               <button
-                onClick={async () => {
-                  if (!captureRef.current || exporting) return
-                  setExporting(true)
-                  try {
-                    const el = captureRef.current
-                    el.classList.add('exporting')
-                    const prevOverflow = el.style.overflow
-                    el.style.overflow = 'visible'
-                    await new Promise(resolve => requestAnimationFrame(resolve))
-                    const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true })
-                    el.classList.remove('exporting')
-                    el.style.overflow = prevOverflow
-                    const link = document.createElement('a')
-                    const label = selectedYear ?? 'all'
-                    link.download = `tracks-${label}.png`
-                    link.href = dataUrl
-                    link.click()
-                  } catch (err) {
-                    console.error('Export failed:', err)
-                  } finally {
-                    setExporting(false)
-                  }
-                }}
+                onClick={handleExport}
                 disabled={exporting}
+                data-export-hidden
                 className="w-6 h-6 flex items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50 transition-all"
                 title={locale === 'zh' ? '导出图片' : 'Export as image'}
               >
