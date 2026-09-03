@@ -96,6 +96,7 @@ export default function App() {
             <RouteMap
               activities={provinceFiltered}
               selectedActivity={selectedActivity}
+              selectedProvince={selectedProvince}
               dark={dark}
               onClearSelection={() => setSelectedActivity(null)}
             />
