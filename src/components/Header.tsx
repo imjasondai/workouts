@@ -55,7 +55,7 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
           {tabs.map((tab) => (
             <button
               key={tab.value}
-              onClick={() => setFilter(tab.value)}
+              onClick={() => { setFilter(tab.value); if (page === 'checkin') onNavigate('home') }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                 filter === tab.value && page === 'home'
                   ? 'bg-[var(--color-accent)] text-white'
