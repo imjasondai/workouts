@@ -3,7 +3,6 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import * as polyline from '@mapbox/polyline'
 import type { Activity } from '../types'
-import chinaProvinces from '../assets/china-provinces.json'
 
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
@@ -148,42 +147,20 @@ export function RouteMap({ activities, selectedActivity, selectedProvince, dark,
 
 
     if (selectedProvince) {
-  const province = chinaProvinces.features.find(
-    feature => feature.properties.name === selectedProvince,
-  )
+  const routeBounds = new mapboxgl.LngLatBounds()
 
-  if (province) {
-    const provinceBounds = new mapboxgl.LngLatBounds()
-
-    function extendBounds(coordinates: unknown): void {
-      if (!Array.isArray(coordinates)) return
-
-      if (
-        coordinates.length >= 2 &&
-        typeof coordinates[0] === 'number' &&
-        typeof coordinates[1] === 'number'
-      ) {
-        provinceBounds.extend([
-          coordinates[0],
-          coordinates[1],
-        ] as [number, number])
-        return
-      }
-
-      for (const child of coordinates) {
-        extendBounds(child)
-      }
+  for (const feature of features) {
+    for (const coordinate of feature.geometry.coordinates) {
+      routeBounds.extend(coordinate as [number, number])
     }
+  }
 
-    extendBounds(province.geometry.coordinates)
-
-    if (!provinceBounds.isEmpty()) {
-      map.current.fitBounds(provinceBounds, {
-        padding: 20,
-        maxZoom: 8,
-      })
-      return
-    }
+  if (!routeBounds.isEmpty()) {
+    map.current.fitBounds(routeBounds, {
+      padding: 30,
+      maxZoom: 14,
+    })
+    return
   }
 }
     // Fit bounds to majority of routes (ignore outliers)
