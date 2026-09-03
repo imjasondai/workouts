@@ -4,8 +4,6 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import * as polyline from '@mapbox/polyline'
 import type { Activity } from '../types'
 
-const MAPBOX_TOKEN =
-  'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
 
 interface RouteMapProps {
   activities: Activity[]
@@ -18,9 +16,28 @@ export function RouteMap({ activities, selectedActivity, dark, onClearSelection 
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
 
-  const style = dark !== false
-    ? 'mapbox://styles/mapbox/dark-v11'
-    : 'mapbox://styles/mapbox/light-v11'
+const style: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    carto: {
+      type: 'raster',
+      tiles: [
+        dark !== false
+          ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+          : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors © CARTO',
+    },
+  },
+  layers: [
+    {
+      id: 'carto',
+      type: 'raster',
+      source: 'carto',
+    },
+  ],
+}
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -30,7 +47,6 @@ export function RouteMap({ activities, selectedActivity, dark, onClearSelection 
       return
     }
 
-    maplibregl.accessToken = MAPBOX_TOKEN
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style,
