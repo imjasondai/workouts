@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
-import * as maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import * as polyline from '@mapbox/polyline'
 import type { Activity } from '../types'
 
+const MAPBOX_TOKEN =
+  'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
 
 interface RouteMapProps {
   activities: Activity[]
@@ -14,21 +16,11 @@ interface RouteMapProps {
 
 export function RouteMap({ activities, selectedActivity, dark, onClearSelection }: RouteMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
-  const map = useRef<maplibregl.Map | null>(null)
+  const map = useRef<mapboxgl.Map | null>(null)
 
-const style: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {},
-  layers: [
-    {
-      id: 'background',
-      type: 'background',
-      paint: {
-        'background-color': dark !== false ? '#0b0f17' : '#f3f4f6',
-      },
-    },
-  ],
-}
+  const style = dark !== false
+    ? 'mapbox://styles/mapbox/dark-v11'
+    : 'mapbox://styles/mapbox/light-v11'
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -38,17 +30,18 @@ const style: maplibregl.StyleSpecification = {
       return
     }
 
-    map.current = new maplibregl.Map({
+    mapboxgl.accessToken = MAPBOX_TOKEN
+    map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style,
       center: [121.4, 31.2],
       zoom: 10,
     })
 
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
-    map.current.addControl(new maplibregl.FullscreenControl(), 'top-right')
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right')
 
-    map.current.on('load', () => {
+    map.current.on('style.load', () => {
       updateRoutes()
     })
 
@@ -62,7 +55,7 @@ const style: maplibregl.StyleSpecification = {
     if (map.current?.isStyleLoaded()) {
       updateRoutes()
     } else {
-      map.current?.once('load', () => updateRoutes())
+      map.current?.once('style.load', () => updateRoutes())
     }
   }, [activities, selectedActivity])
 
@@ -101,7 +94,7 @@ const style: maplibregl.StyleSpecification = {
         },
       })
 
-      const bounds = new maplibregl.LngLatBounds()
+      const bounds = new mapboxgl.LngLatBounds()
       for (const c of coords) bounds.extend(c as [number, number])
       map.current.fitBounds(bounds, { padding: 50, maxZoom: 14 })
       return
@@ -170,7 +163,7 @@ const style: maplibregl.StyleSpecification = {
     const lngs = allCoords.map(c => c[0]).sort((a, b) => a - b)
     const lats = allCoords.map(c => c[1]).sort((a, b) => a - b)
 
-    const bounds = new maplibregl.LngLatBounds(
+    const bounds = new mapboxgl.LngLatBounds(
       [lngs[trimCount], lats[trimCount]],
       [lngs[lngs.length - 1 - trimCount], lats[lats.length - 1 - trimCount]]
     )
