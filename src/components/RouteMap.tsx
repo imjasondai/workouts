@@ -16,9 +16,19 @@ export function RouteMap({ activities, selectedActivity, dark, onClearSelection 
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
 
-const style = dark !== false
-  ? 'https://tiles.openfreemap.org/styles/dark'
-  : 'https://tiles.openfreemap.org/styles/positron'
+const style: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {},
+  layers: [
+    {
+      id: 'background',
+      type: 'background',
+      paint: {
+        'background-color': dark !== false ? '#0b0f17' : '#f3f4f6',
+      },
+    },
+  ],
+}
 
   useEffect(() => {
     if (!mapContainer.current) return
