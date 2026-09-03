@@ -1,6 +1,73 @@
 import { useMemo } from 'react'
 import type { Activity, SportFilter } from '../types'
 import { WORKOUT_TYPES } from '../types'
+import chinaProvinces from '../assets/china-provinces.json' 
+
+type ProvinceFeature = {
+  properties: { name: string }
+  geometry: {
+    type: string
+    coordinates: unknown
+  }
+}
+
+function decodePolylineStart(encoded: string): [number, number] | null {
+  let index = 0
+
+  function decodeValue(): number | null {
+    let result = 0
+    let shift = 0
+    let byte = 0
+
+    do {
+      if (index >= encoded.length) return null
+      byte = encoded.charCodeAt(index++) - 63
+      result |= (byte & 0x1f) << shift
+      shift += 5
+    } while (byte >= 0x20)
+
+    return (result & 1) ? ~(result >> 1) : (result >> 1)
+  }
+
+  const latitude = decodeValue()
+  const longitude = decodeValue()
+  if (latitude === null || longitude === null) return null
+
+  return [longitude / 1e5, latitude / 1e5]
+}
+
+function pointInRing(point: [number, number], ring: number[][]): boolean {
+  const [x, y] = point
+  let inside = false
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]
+    const [xj, yj] = ring[j]
+
+    const intersects =
+      yi > y !== yj > y &&
+      x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+
+    if (intersects) inside = !inside
+  }
+
+  return inside
+}
+
+function featureContainsPoint(
+  feature: ProvinceFeature,
+  point: [number, number],
+): boolean {
+  if (feature.geometry.type === 'Polygon') {
+    const polygon = feature.geometry.coordinates as number[][][]
+    return polygon.length > 0 && pointInRing(point, polygon[0])
+  }
+
+  const polygons = feature.geometry.coordinates as number[][][][]
+  return polygons.some(
+    polygon => polygon.length > 0 && pointInRing(point, polygon[0]),
+  )
+}
 
 // Canonical province extraction — handles all 3 location_country formats,
 // only returns Chinese provinces (filters out foreign locations).
@@ -43,6 +110,22 @@ export function extractProvince(loc: string | null): string | null {
     if (loc.includes(key)) return val
   }
   return null
+}
+
+export function extractActivityProvince(activity: Activity): string | null {
+  const storedProvince = extractProvince(activity.location_country)
+  if (storedProvince) return storedProvince
+  if (!activity.summary_polyline) return null
+
+  const startPoint = decodePolylineStart(activity.summary_polyline)
+  if (!startPoint) return null
+
+  const features = chinaProvinces.features as unknown as ProvinceFeature[]
+  const feature = features.find(item =>
+    featureContainsPoint(item, startPoint),
+  )
+
+  return feature?.properties.name ?? null
 }
 
 export function useFilteredActivities(
