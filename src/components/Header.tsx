@@ -2,7 +2,7 @@ import type { SportFilter, Activity } from '../types'
 import { WORKOUT_TYPES } from '../types'
 import { useLocale } from '../hooks/useLocale'
 
-type Page = 'home' | 'tracks' | 'checkin'
+type Page = 'home' | 'tracks'
 
 interface HeaderProps {
   filter: SportFilter
@@ -38,7 +38,6 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
   const navItems: { label: string; page: Page }[] = [
     { label: t('home'), page: 'home' },
     { label: t('tracks'), page: 'tracks' },
-    { label: t('checkin'), page: 'checkin' },
   ]
 
   return (
@@ -56,7 +55,7 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
           {tabs.map((tab) => (
             <button
               key={tab.value}
-              onClick={() => { setFilter(tab.value); if (page === 'checkin') onNavigate('home') }}
+              onClick={() => setFilter(tab.value)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                 filter === tab.value && page === 'home'
                   ? 'bg-[var(--color-accent)] text-white'
@@ -109,8 +108,6 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
             {locale === 'zh' ? 'EN' : '中'}
           </button>
 
-          {/* GitHub Auth */}
-          <GitHubAuthDropdown />
         </div>
       </div>
     </header>
