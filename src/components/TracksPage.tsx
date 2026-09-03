@@ -67,28 +67,9 @@ function TrackMap({ activity, activities, dark }: {
   const mapReady = useRef(false)
   const activityRef = useRef(activity)
   const activitiesRef = useRef(activities)
-  const style: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    carto: {
-      type: 'raster',
-      tiles: [
-        dark !== false
-          ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-          : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors © CARTO',
-    },
-  },
-  layers: [
-    {
-      id: 'carto',
-      type: 'raster',
-      source: 'carto',
-    },
-  ],
-}
+  const style = dark !== false
+  ? 'https://tiles.openfreemap.org/styles/dark'
+  : 'https://tiles.openfreemap.org/styles/positron'
 
   activityRef.current = activity
   activitiesRef.current = activities
