@@ -3,7 +3,7 @@ import { RefreshCw, CheckCircle, XCircle, Clock, Loader, Route } from 'lucide-re
 import type { Activity, SportFilter } from '../types'
 import { useLocale } from '../hooks/useLocale'
 import { useGitHubAuthContext } from '../hooks/useGitHubAuthContext'
-import { formatDistance, parseMovingTime, extractProvince } from '../hooks/useActivities'
+import { formatDistance, parseMovingTime, extractActivityProvince } from '../hooks/useActivities'
 import rawConfig from '@config'
 
 const config = rawConfig as { repoOwner?: string; repoName?: string }
@@ -57,21 +57,36 @@ export function ProfileCard({ activities, filter = 'all' }: ProfileCardProps) {
   const yearsActive = allDates.length > 0 ? (Math.max(...allDates) - Math.min(...allDates) + 1) : 0
 
   const countries = new Set<string>()
-  const provinces = new Set<string>()
-  for (const a of activities) {
-    const loc = a.location_country
-    if (!loc || loc === 'None') continue
-    if (loc.startsWith('{')) {
+const provinces = new Set<string>()
+
+for (const activity of activities) {
+  const location = activity.location_country
+
+  if (location && location !== 'None') {
+    if (location.startsWith('{')) {
       try {
-        const d = JSON.parse(loc.replace(/'/g, '"').replace(/None/g, 'null'))
-        if (d.country) countries.add(d.country)
-      } catch { /* ignore */ }
-    } else if (loc.includes('泰国')) { countries.add('泰国')
-    } else if (loc.includes('日本')) { countries.add('日本')
-    } else { countries.add('中国') }
-    const p = extractProvince(loc)
-    if (p) provinces.add(p)
+        const data = JSON.parse(
+          location.replace(/'/g, '"').replace(/None/g, 'null'),
+        )
+        if (data.country) countries.add(data.country)
+      } catch {
+        // Ignore invalid stored location data
+      }
+    } else if (location.includes('泰国')) {
+      countries.add('泰国')
+    } else if (location.includes('日本')) {
+      countries.add('日本')
+    } else {
+      countries.add('中国')
+    }
   }
+
+  const province = extractActivityProvince(activity)
+  if (province) {
+    provinces.add(province)
+    countries.add('中国')
+  }
+}
 
   const formatHours = (secs: number) => `${(secs / 3600).toFixed(1)}h`
 
