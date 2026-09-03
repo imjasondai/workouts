@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import './index.css'
 import type { Activity, SportFilter } from './types'
-import { useFilteredActivities, getAvailableYears, extractProvince } from './hooks/useActivities'
+import { useFilteredActivities, getAvailableYears, extractActivityProvince } from './hooks/useActivities'
 import { useTheme } from './hooks/useTheme'
 import { LocaleProvider } from './hooks/useLocale'
 import { GitHubAuthProvider } from './hooks/useGitHubAuthContext'
@@ -37,7 +37,7 @@ export default function App() {
   // Activities filtered to the selected province (for RouteMap)
   const provinceFiltered = useMemo(() => {
     if (!selectedProvince) return filtered
-    return filtered.filter(a => extractProvince(a.location_country) === selectedProvince)
+    return filtered.filter(a => extractActivityProvince(a) === selectedProvince)
   }, [filtered, selectedProvince])
 
   return (
