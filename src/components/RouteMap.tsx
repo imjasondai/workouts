@@ -38,7 +38,7 @@ const style = dark !== false
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
     map.current.addControl(new maplibregl.FullscreenControl(), 'top-right')
 
-    map.current.on('style.load', () => {
+    map.current.on('load', () => {
       updateRoutes()
     })
 
@@ -52,7 +52,7 @@ const style = dark !== false
     if (map.current?.isStyleLoaded()) {
       updateRoutes()
     } else {
-      map.current?.once('style.load', () => updateRoutes())
+      map.current?.once('load', () => updateRoutes())
     }
   }, [activities, selectedActivity])
 
