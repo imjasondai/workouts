@@ -22,9 +22,9 @@ goals:
     unit: distance
 
   Run:
-    yearly: 1200
-    monthly: 100
-    weekly: 25
+    yearly: 1800
+    monthly: 150
+    weekly: 40
     unit: distance
 
   Ride:
