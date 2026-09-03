@@ -1,9 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
-import { LogOut } from 'lucide-react'
 import type { SportFilter, Activity } from '../types'
 import { WORKOUT_TYPES } from '../types'
 import { useLocale } from '../hooks/useLocale'
-import { useGitHubAuthContext } from '../hooks/useGitHubAuthContext'
 
 type Page = 'home' | 'tracks' | 'checkin'
 
