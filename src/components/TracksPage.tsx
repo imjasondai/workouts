@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { toPng } from 'html-to-image'
 import * as polyline from '@mapbox/polyline'
-import * as maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import type { Activity } from '../types'
 import { getAvailableYears, formatDistance, parseMovingTime, formatPace } from '../hooks/useActivities'
 import { useLocale } from '../hooks/useLocale'
 import { BrandingBar } from './BrandingBar'
+
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
 
 type SportType = 'Run' | 'Ride' | 'Hike' | 'Swim'
 
@@ -63,23 +65,11 @@ function TrackMap({ activity, activities, dark }: {
   activity: Activity | null; activities: Activity[]; dark?: boolean
 }) {
   const mapContainer = useRef<HTMLDivElement>(null)
-  const map = useRef<maplibregl.Map | null>(null)
+  const map = useRef<mapboxgl.Map | null>(null)
   const mapReady = useRef(false)
   const activityRef = useRef(activity)
   const activitiesRef = useRef(activities)
-  const style: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {},
-  layers: [
-    {
-      id: 'background',
-      type: 'background',
-      paint: {
-        'background-color': dark !== false ? '#0b0f17' : '#f3f4f6',
-      },
-    },
-  ],
-}
+  const style = dark !== false ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11'
 
   activityRef.current = activity
   activitiesRef.current = activities
@@ -98,7 +88,7 @@ function TrackMap({ activity, activities, dark }: {
       const coords = polyline.decode(act.summary_polyline).map(([lat, lng]) => [lng, lat])
       m.addSource('selected', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } } })
       m.addLayer({ id: 'selected', type: 'line', source: 'selected', paint: { 'line-color': getColor(act), 'line-width': 3, 'line-opacity': 0.9 } })
-      const bounds = new maplibregl.LngLatBounds()
+      const bounds = new mapboxgl.LngLatBounds()
       coords.forEach(c => bounds.extend(c as [number, number]))
       m.fitBounds(bounds, { padding: 50, maxZoom: 14 })
       return
@@ -119,17 +109,18 @@ function TrackMap({ activity, activities, dark }: {
     const lngs = allCoords.map(c => c[0]).sort((a, b) => a - b)
     const lats = allCoords.map(c => c[1]).sort((a, b) => a - b)
     const t = Math.floor(lngs.length * 0.1)
-    m.fitBounds(new maplibregl.LngLatBounds([lngs[t], lats[t]], [lngs[lngs.length - 1 - t], lats[lats.length - 1 - t]]), { padding: 30, maxZoom: 13 })
+    m.fitBounds(new mapboxgl.LngLatBounds([lngs[t], lats[t]], [lngs[lngs.length - 1 - t], lats[lats.length - 1 - t]]), { padding: 30, maxZoom: 13 })
   })
 
   // Init map once
   useEffect(() => {
     if (!mapContainer.current) return
     if (map.current) { map.current.setStyle(style); return }
+    mapboxgl.accessToken = MAPBOX_TOKEN
     mapReady.current = false
-    map.current = new maplibregl.Map({ container: mapContainer.current, style, center: [108, 35], zoom: 3 })
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
-    map.current.on('load', () => {
+    map.current = new mapboxgl.Map({ container: mapContainer.current, style, center: [108, 35], zoom: 3 })
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    map.current.on('style.load', () => {
       mapReady.current = true
       updateRoutes.current()
     })
