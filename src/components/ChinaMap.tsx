@@ -46,6 +46,64 @@ function featureToPath(feature: GeoFeature, w: number, h: number): string {
     .join(' ')
 }
 
+function decodePolylineStart(encoded: string): [number, number] | null {
+  let index = 0
+
+  function decodeValue(): number | null {
+    let result = 0
+    let shift = 0
+    let byte = 0
+
+    do {
+      if (index >= encoded.length) return null
+      byte = encoded.charCodeAt(index++) - 63
+      result |= (byte & 0x1f) << shift
+      shift += 5
+    } while (byte >= 0x20)
+
+    return (result & 1) ? ~(result >> 1) : (result >> 1)
+  }
+
+  const latitude = decodeValue()
+  const longitude = decodeValue()
+  if (latitude === null || longitude === null) return null
+
+  return [longitude / 1e5, latitude / 1e5]
+}
+
+function pointInRing(point: [number, number], ring: number[][]): boolean {
+  const [x, y] = point
+  let inside = false
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]
+    const [xj, yj] = ring[j]
+
+    const intersects =
+      yi > y !== yj > y &&
+      x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+
+    if (intersects) inside = !inside
+  }
+
+  return inside
+}
+
+function featureContainsPoint(
+  feature: GeoFeature,
+  point: [number, number],
+): boolean {
+  if (feature.geometry.type === 'Polygon') {
+    const polygon = feature.geometry.coordinates as unknown as number[][][]
+    return polygon.length > 0 && pointInRing(point, polygon[0])
+  }
+
+  const polygons = feature.geometry.coordinates as unknown as number[][][][]
+  return polygons.some(
+    polygon => polygon.length > 0 && pointInRing(point, polygon[0]),
+  )
+}
+
 export function ChinaMap({ activities, filter, onSelectProvince, selectedProvince }: ChinaMapProps) {
   const { locale } = useLocale()
   const [hoveredProvince, setHoveredProvince] = useState<string | null>(null)
@@ -71,11 +129,24 @@ export function ChinaMap({ activities, filter, onSelectProvince, selectedProvinc
   const provinceCount = useMemo(() => {
     const map = new Map<string, number>()
     for (const a of activities) {
-      const p = extractProvince(a.location_country)
-      if (p) map.set(p, (map.get(p) ?? 0) + 1)
+  let province = extractProvince(a.location_country)
+
+  if (!province && a.summary_polyline) {
+    const startPoint = decodePolylineStart(a.summary_polyline)
+    if (startPoint) {
+      const feature = features.find(item =>
+        featureContainsPoint(item, startPoint),
+      )
+      province = feature?.properties.name ?? null
     }
-    return map
-  }, [activities])
+  }
+
+  if (province) {
+    map.set(province, (map.get(province) ?? 0) + 1)
+  }
+}
+return map
+}, [activities, features])
 
   const visitedCount = provinceCount.size
   const displayProvince = hoveredProvince ?? selectedProvince
