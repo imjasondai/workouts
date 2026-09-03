@@ -58,5 +58,5 @@ goals:
 githubClientId: 'Ov23liIA4gcZ3hXZkJnP'
 
 # 打卡数据存储位置（当前 repo），格式：username/repo-name
-repoOwner: 'zhaohongxuan'
+repoOwner: 'imjasondai'
 repoName: 'workouts'
