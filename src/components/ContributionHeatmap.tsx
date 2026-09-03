@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { toPng } from 'html-to-image'
+import { toBlob } from 'html-to-image'
 import type { Activity, SportFilter } from '../types'
 import { WORKOUT_TYPES } from '../types'
 import { getAvailableYears, formatDistance, parseMovingTime, formatPace } from '../hooks/useActivities'
@@ -238,43 +238,79 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
   }
 
   const handleExport = async () => {
-    if (!captureRef.current || exporting) return
-    setExporting(true)
-    try {
-      const el = captureRef.current
+  if (!captureRef.current || exporting) return
 
-      // Freeze animations
-      el.classList.add('exporting')
-      const prevOverflow = el.style.overflow
-      el.style.overflow = 'visible'
+  const element = captureRef.current
+  const previousOverflow = element.style.overflow
+  setExporting(true)
 
-      // Wait a frame for styles to settle
-      await new Promise(resolve => requestAnimationFrame(resolve))
+  try {
+    element.classList.add('exporting')
+    element.style.overflow = 'visible'
 
-      const computedBg = getComputedStyle(el).backgroundColor
-      const dataUrl = await toPng(el, {
-        backgroundColor: computedBg === 'rgba(0, 0, 0, 0)' || computedBg === 'transparent'
+    await document.fonts.ready
+    await new Promise<void>(resolve =>
+      requestAnimationFrame(() => resolve()),
+    )
+
+    const computedBackground = getComputedStyle(element).backgroundColor
+    const blob = await toBlob(element, {
+      backgroundColor:
+        computedBackground === 'rgba(0, 0, 0, 0)' ||
+        computedBackground === 'transparent'
           ? '#ffffff'
-          : computedBg,
-        pixelRatio: 2,
-        filter: (node) => !(node instanceof HTMLElement && node.hasAttribute('data-export-hidden')),
-        cacheBust: true,
-      })
+          : computedBackground,
+      pixelRatio: 2,
+      width: element.scrollWidth,
+      height: element.scrollHeight,
+      cacheBust: false,
+      skipFonts: true,
+      filter: node => {
+        if (
+          node instanceof HTMLElement &&
+          node.hasAttribute('data-export-hidden')
+        ) {
+          return false
+        }
 
-      // Restore
-      el.classList.remove('exporting')
-      el.style.overflow = prevOverflow
+        if (node instanceof HTMLImageElement) {
+          try {
+            return new URL(node.src).origin === window.location.origin
+          } catch {
+            return false
+          }
+        }
 
-      const link = document.createElement('a')
-      link.download = `heatmap-${selectedYear === 'all' ? 'all' : selectedYear}.png`
-      link.href = dataUrl
-      link.click()
-    } catch (err) {
-      console.error('Export failed:', err)
-    } finally {
-      setExporting(false)
-    }
+        return true
+      },
+    })
+
+    if (!blob) throw new Error('Image generation returned no data')
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download =
+      `heatmap-${selectedYear === 'all' ? 'all' : selectedYear}.png`
+    link.style.display = 'none'
+
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } catch (error) {
+    console.error('Export failed:', error)
+    window.alert(
+      locale === 'zh'
+        ? '图片导出失败，请刷新页面后重试。'
+        : 'Image export failed. Please refresh the page and try again.',
+    )
+  } finally {
+    element.classList.remove('exporting')
+    element.style.overflow = previousOverflow
+    setExporting(false)
   }
+}
 
   // Aggregate stats for "all" mode
   const allStats = useMemo(() => {
