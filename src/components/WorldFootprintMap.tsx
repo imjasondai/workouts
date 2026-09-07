@@ -551,14 +551,11 @@ refreshCountryStatsRef.current = null
 
   return (
     <section className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
-      <div className="px-5 py-4">
-        <h2 className="text-base font-semibold">Footprint Map</h2>
-      </div>
-      <div className="relative [@media(pointer:coarse)]:[--globe-control-size:44px]">
+            <div className="relative [@media(pointer:coarse)]:[--globe-control-size:44px]">
   <div
     ref={containerRef}
     className="w-full"
-    style={{ height: 380 }}
+    style={{ height: 280 }}
   />
 
   <button
