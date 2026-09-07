@@ -33,11 +33,14 @@ export function RouteMap({ activities, selectedActivity, selectedProvince, dark,
     }
 
     mapboxgl.accessToken = MAPBOX_TOKEN
-    map.current = new mapboxgl.Map({
+   const useTouchGestures = window.matchMedia(
+  '(pointer: coarse)',
+).matches
       container: mapContainer.current,
       style,
       center: [121.4, 31.2],
       zoom: 10,
+        cooperativeGestures: useTouchGestures,
     })
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
