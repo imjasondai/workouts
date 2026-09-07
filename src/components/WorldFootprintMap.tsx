@@ -132,6 +132,9 @@ const refreshCountryStatsRef = useRef<(() => void) | null>(null)
   useEffect(() => {
     if (!containerRef.current) return
 
+    const useTouchGestures = window.matchMedia(
+  '(pointer: coarse)',
+).matches
     const map = new mapboxgl.Map({
       container: containerRef.current,
       accessToken: mapboxToken,
@@ -144,6 +147,7 @@ const refreshCountryStatsRef = useRef<(() => void) | null>(null)
       minZoom: 0,
       maxZoom: 12,
       attributionControl: true,
+      cooperativeGestures: useTouchGestures,
     })
 
     map.addControl(new mapboxgl.NavigationControl(), 'top-right')
@@ -550,7 +554,7 @@ refreshCountryStatsRef.current = null
       <div className="px-5 py-4">
         <h2 className="text-base font-semibold">Footprint Map</h2>
       </div>
-      <div className="relative">
+      <div className="relative [@media(pointer:coarse)]:[--globe-control-size:44px]">
   <div
     ref={containerRef}
     className="w-full"
@@ -563,8 +567,8 @@ refreshCountryStatsRef.current = null
     aria-label="Back to globe"
     className="absolute top-[10px] left-[10px] z-10 flex items-center justify-center bg-white text-black cursor-pointer hover:bg-gray-200 active:bg-gray-300 active:scale-95 transition-colors duration-150"
     style={{
-      width: 29,
-      height: 29,
+      width: 'var(--globe-control-size, 29px)',
+height: 'var(--globe-control-size, 29px)',
       borderRadius: 4,
       boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.1)',
     }}
