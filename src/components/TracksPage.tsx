@@ -309,7 +309,7 @@ export function TracksPage({ activities, onBack, onSelectActivity }: TracksPageP
   ]
 
   return (
-    <div className="max-w-[1400px] mx-auto px-6 py-6">
+    <div className="max-w-[1400px] mx-auto px-3 py-4 lg:px-6 lg:py-6">
       {/* Top bar: back + title */}
       <div className="flex items-center gap-4 mb-5">
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors shrink-0">
@@ -418,7 +418,7 @@ export function TracksPage({ activities, onBack, onSelectActivity }: TracksPageP
             }
           `}</style>
           {/* Year pills + sport filter */}
-          <div className="flex items-center gap-1.5 mb-4 pb-3 border-b border-[var(--color-border)]">
+          <div className="flex flex-wrap lg:flex-nowrap items-center gap-1.5 mb-4 pb-3 border-b border-[var(--color-border)]">
             {totalYearPages > 1 && (
               <button onClick={() => setYearPage(p => Math.max(0, p - 1))} disabled={yearPage === 0}
                 className="text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-30 transition-colors px-1 text-base leading-none">
@@ -442,14 +442,14 @@ export function TracksPage({ activities, onBack, onSelectActivity }: TracksPageP
               </button>
             )}
             {/* Sport filter — right side */}
-            <div className="flex items-center gap-1.5 ml-auto">
+            <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto pt-2 lg:w-auto lg:ml-auto lg:overflow-visible lg:pt-0">
               <button onClick={() => setSportFilter(null)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${sportFilter === null ? 'bg-[var(--color-accent)] text-white border-transparent' : 'border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}>
+                className={`shrink-0 whitespace-nowrap px-3 py-2.5 lg:py-1 rounded-full text-xs font-medium transition-all border ${sportFilter === null ? 'bg-[var(--color-accent)] text-white border-transparent' : 'border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}>
                 {locale === 'zh' ? '全部' : 'All'}
               </button>
               {allSportTabs.filter(t => hasSport(t.value)).map(({ label, value, color }) => (
                 <button key={value} onClick={() => setSportFilter(sportFilter === value ? null : value)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${sportFilter === value ? 'text-white border-transparent' : 'border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}
+                  className={`shrink-0 whitespace-nowrap px-3 py-2.5 lg:py-1 rounded-full text-xs font-medium transition-all border ${sportFilter === value ? 'text-white border-transparent' : 'border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}
                   style={sportFilter === value ? { backgroundColor: color } : {}}>
                   {label}
                 </button>
@@ -459,7 +459,7 @@ export function TracksPage({ activities, onBack, onSelectActivity }: TracksPageP
                 onClick={handleExport}
                 disabled={exporting}
                 data-export-hidden
-                className="w-6 h-6 flex items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50 transition-all"
+                className="w-11 h-11 lg:w-6 lg:h-6 shrink-0 flex items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50 transition-all"
                 title={locale === 'zh' ? '导出图片' : 'Export as image'}
               >
                 {exporting ? (
