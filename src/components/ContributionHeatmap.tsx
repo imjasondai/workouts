@@ -358,13 +358,13 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
       `}</style>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-4">
         <h2 className="text-lg font-semibold">{heatmapTitle}</h2>
-        <div className="flex items-center gap-1.5">
+        <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto lg:w-auto lg:overflow-visible">
           {/* ALL button */}
           <button
             onClick={() => handleSelectYear('all')}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`shrink-0 whitespace-nowrap min-h-11 lg:min-h-0 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               selectedYear === 'all' ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
             }`}
           >
@@ -377,7 +377,7 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
           <button
             onClick={() => shiftWindow(-1)}
             disabled={!canScrollLeft}
-            className="w-5 h-5 flex items-center justify-center rounded transition-all disabled:opacity-20 text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:cursor-not-allowed"
+            className="w-11 h-11 lg:w-5 lg:h-5 shrink-0 flex items-center justify-center rounded transition-all disabled:opacity-20 text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:cursor-not-allowed"
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -387,7 +387,7 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
           {/* Visible year buttons */}
           {visibleYears.map((y) => (
             <button key={y} onClick={() => handleSelectYear(y)}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+              className={`shrink-0 whitespace-nowrap min-h-11 lg:min-h-0 px-2.5 py-1 rounded text-xs font-medium transition-all ${
                 selectedYear === y ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
               }`}
             >{y}</button>
@@ -397,7 +397,7 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
           <button
             onClick={() => shiftWindow(1)}
             disabled={!canScrollRight}
-            className="w-5 h-5 flex items-center justify-center rounded transition-all disabled:opacity-20 text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:cursor-not-allowed"
+            className="w-11 h-11 lg:w-5 lg:h-5 shrink-0 flex items-center justify-center rounded transition-all disabled:opacity-20 text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:cursor-not-allowed"
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -411,7 +411,7 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
             onClick={handleExport}
             disabled={exporting}
             data-export-hidden
-            className="w-6 h-6 flex items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50 transition-all"
+            className="w-11 h-11 lg:w-6 lg:h-6 shrink-0 flex items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50 transition-all"
             title={locale === 'zh' ? '导出图片' : 'Export as image'}
           >
             {exporting ? (
