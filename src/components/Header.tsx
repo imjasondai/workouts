@@ -46,7 +46,7 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
         {/* Logo */}
         <div className="flex items-center gap-2">
           <span className="text-base lg:text-xl whitespace-nowrap font-bold text-[var(--color-text)]">
-            JASON<span className="text-[var(--color-run)]">.</span>LOG
+            RUN<span className="text-[var(--color-run)]">.</span>LOG
           </span>
         </div>
 
