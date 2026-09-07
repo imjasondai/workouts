@@ -132,9 +132,56 @@ map.on('mousemove', 'country-hover-target', event => {
   map.getCanvas().style.cursor = 'pointer'
 })
 
-map.on('click', 'country-hover-target', event => {
+  function ensureProvinceLayers() {
+  if (map.getSource('world-provinces')) return
+
+  map.addSource('world-provinces', {
+    type: 'geojson',
+    data: `${import.meta.env.BASE_URL}world-provinces.geojson`,
+    generateId: true,
+  })
+
+  map.addLayer({
+    id: 'province-hover-target',
+    type: 'fill',
+    source: 'world-provinces',
+    filter: ['==', ['get', 'adm0_a3'], ''],
+    paint: {
+      'fill-opacity': 0,
+    },
+  })
+
+  map.addLayer({
+    id: 'province-boundaries',
+    type: 'line',
+    source: 'world-provinces',
+    filter: ['==', ['get', 'adm0_a3'], ''],
+    paint: {
+      'line-color': highlightColorRef.current,
+      'line-width': 1,
+      'line-opacity': 0.65,
+    },
+  })
+}
+  map.on('click', 'country-hover-target', event => {
   const country = event.features?.[0]
   if (!country) return
+    const countryCode = country.properties?.ADM0_A3
+if (typeof countryCode !== 'string') return
+
+ensureProvinceLayers()
+
+map.setFilter('province-hover-target', [
+  '==',
+  ['get', 'adm0_a3'],
+  countryCode,
+])
+
+map.setFilter('province-boundaries', [
+  '==',
+  ['get', 'adm0_a3'],
+  countryCode,
+])
 
   const geometry = country.geometry
   if (
@@ -206,13 +253,16 @@ map.on('movestart', clearCountryHover)
   }, [mapboxToken, dark])
   useEffect(() => {
   const map = mapRef.current
-  if (!map || !map.getLayer('country-hover-outline')) return
+  if (!map) return
 
-  map.setPaintProperty(
+  for (const layerId of [
     'country-hover-outline',
-    'line-color',
-    highlightColor,
-  )
+    'province-boundaries',
+  ]) {
+    if (map.getLayer(layerId)) {
+      map.setPaintProperty(layerId, 'line-color', highlightColor)
+    }
+  }
 }, [highlightColor])
 
   return (
@@ -239,7 +289,22 @@ map.on('movestart', clearCountryHover)
       boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.1)',
     }}
     onClick={() => {
-      mapRef.current?.flyTo({
+  const map = mapRef.current
+  if (!map) return
+
+  if (map.getLayer('province-hover-target')) {
+    map.setFilter('province-hover-target', [
+      '==', ['get', 'adm0_a3'], '',
+    ])
+  }
+
+  if (map.getLayer('province-boundaries')) {
+    map.setFilter('province-boundaries', [
+      '==', ['get', 'adm0_a3'], '',
+    ])
+  }
+
+  map.flyTo({
         center: [105, 25],
         zoom: 1.2,
         bearing: 0,
