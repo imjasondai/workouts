@@ -142,8 +142,8 @@ const refreshCountryStatsRef = useRef<(() => void) | null>(null)
         ? 'mapbox://styles/mapbox/dark-v11'
         : 'mapbox://styles/mapbox/light-v11',
       projection: 'globe',
-      center: [15, 20],
-      zoom: 1.2,
+      center: [104, 35],
+zoom: 2.4,
       minZoom: 0,
       maxZoom: 12,
       attributionControl: true,
@@ -498,17 +498,89 @@ map.once('moveend', () => {
   
 map.on('mouseleave', 'country-hover-target', clearCountryHover)
 map.on('movestart', clearCountryHover)
-  refreshCountryStatsRef.current?.()
+  const defaultCountryCode = 'CHN'
 
-  map.flyTo({
-    center: [105, 35],
-    zoom: 1.5,
-    bearing: 0,
-    pitch: 0,
-    duration: 3000,
-    curve: 1,
-  })
+ensureProvinceLayers()
+
+selectedCountryRef.current = defaultCountryCode
+countryAnimationDoneRef.current = true
+countryStatsRequestRef.current += 1
+highlightRequestRef.current += 1
+
+geographyStatsCallbackRef.current?.({
+  level: 'provinces',
+  count: null,
 })
+
+map.setFilter('province-hover-target', [
+  '==',
+  ['get', 'adm0_a3'],
+  defaultCountryCode,
+])
+
+map.setFilter('province-boundaries', [
+  '==',
+  ['get', 'adm0_a3'],
+  defaultCountryCode,
+])
+
+map.setFilter('province-visited-fill', [
+  '==',
+  ['get', 'adm0_a3'],
+  '',
+])
+
+void loadCountryData()
+  .then(data => {
+    if (
+      mapRef.current !== map ||
+      selectedCountryRef.current !== defaultCountryCode
+    ) {
+      return
+    }
+
+    const china = data.features.find(
+      feature => feature.properties?.ADM0_A3 === defaultCountryCode,
+    )
+
+    if (!china) return
+
+    const bounds = new mapboxgl.LngLatBounds()
+
+    function extendChinaBounds(value: unknown): void {
+      if (!Array.isArray(value)) return
+
+      if (
+        value.length >= 2 &&
+        typeof value[0] === 'number' &&
+        typeof value[1] === 'number'
+      ) {
+        bounds.extend([value[0], value[1]])
+        return
+      }
+
+      for (const child of value) {
+        extendChinaBounds(child)
+      }
+    }
+
+    extendChinaBounds(china.geometry.coordinates)
+
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, {
+        padding: 20,
+        maxZoom: 4,
+        duration: 0,
+        bearing: 0,
+        pitch: 0,
+      })
+    }
+  })
+  .catch(error => {
+    console.error('Unable to focus China:', error)
+  })
+
+refreshProvinceHighlightRef.current?.()
     const observer = new ResizeObserver(() => map.resize())
     observer.observe(containerRef.current)
 
