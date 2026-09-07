@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import * as polyline from '@mapbox/polyline'
 import type { Activity } from '../types'
+import { extractActivityProvince } from '../hooks/useActivities'
 
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
@@ -163,31 +164,82 @@ export function RouteMap({ activities, selectedActivity, selectedProvince, dark,
     return
   }
 }
-    // Fit bounds to majority of routes (ignore outliers)
-    // Use median-based approach: find the region where most routes are
-    const allCoords: [number, number][] = []
-    for (const f of features) {
-      // Use first coord of each route as representative point
-      if (f.geometry.coordinates.length > 0) {
-        allCoords.push(f.geometry.coordinates[0] as [number, number])
-      }
-    }
+    // Prefer Shanghai routes for the default overview
+const shanghaiActivities = activities.filter(
+  activity =>
+    activity.summary_polyline &&
+    extractActivityProvince(activity) === '上海市',
+)
 
-    if (allCoords.length === 0) return
+const shanghaiRuns = shanghaiActivities.filter(
+  activity => activity.type === 'Run',
+)
 
-    // Sort by lng and lat, take the middle 80% to exclude outliers
-    const trimPct = 0.1
-    const trimCount = Math.floor(allCoords.length * trimPct)
+const overviewActivities =
+  shanghaiRuns.length > 0
+    ? shanghaiRuns
+    : shanghaiActivities.length > 0
+      ? shanghaiActivities
+      : activities
 
-    const lngs = allCoords.map(c => c[0]).sort((a, b) => a - b)
-    const lats = allCoords.map(c => c[1]).sort((a, b) => a - b)
+const routes = overviewActivities.flatMap(activity => {
+  if (!activity.summary_polyline) return []
 
-    const bounds = new mapboxgl.LngLatBounds(
-      [lngs[trimCount], lats[trimCount]],
-      [lngs[lngs.length - 1 - trimCount], lats[lats.length - 1 - trimCount]]
-    )
+  try {
+    const coordinates = polyline
+      .decode(activity.summary_polyline)
+      .map(([lat, lng]): [number, number] => [lng, lat])
+      .filter(([lng, lat]) =>
+        Number.isFinite(lng) && Number.isFinite(lat),
+      )
 
-    map.current.fitBounds(bounds, { padding: 30, maxZoom: 13 })
+    return coordinates.length > 1 ? [coordinates] : []
+  } catch {
+    return []
+  }
+})
+
+if (routes.length === 0) return
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b)
+  const middle = Math.floor(sorted.length / 2)
+
+  return sorted.length % 2
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2
+}
+
+const centerLng = median(routes.map(route => route[0][0]))
+const centerLat = median(routes.map(route => route[0][1]))
+const longitudeScale = Math.cos(centerLat * Math.PI / 180)
+
+function distanceFromCenter(route: [number, number][]): number {
+  const dx = (route[0][0] - centerLng) * longitudeScale
+  const dy = route[0][1] - centerLat
+  return dx * dx + dy * dy
+}
+
+// Use the nearest 90% of route starts, then fit their complete routes
+const rankedRoutes = [...routes].sort(
+  (a, b) => distanceFromCenter(a) - distanceFromCenter(b),
+)
+
+const keepCount = Math.max(1, Math.ceil(rankedRoutes.length * 0.9))
+const mainRoutes = rankedRoutes.slice(0, keepCount)
+const bounds = new mapboxgl.LngLatBounds()
+
+for (const route of mainRoutes) {
+  for (const coordinate of route) {
+    bounds.extend(coordinate)
+  }
+}
+
+map.current.fitBounds(bounds, {
+  padding: 35,
+  maxZoom: 12.5,
+  duration: 1200,
+})
   }
 
   return (
