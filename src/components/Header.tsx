@@ -42,21 +42,21 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/70 backdrop-blur-md">
-      <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-[1400px] mx-auto px-3 py-2 flex flex-wrap items-center justify-between gap-y-2 lg:px-6 lg:py-4 lg:flex-nowrap lg:gap-y-0">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-[var(--color-text)]">
+          <span className="text-base lg:text-xl whitespace-nowrap font-bold text-[var(--color-text)]">
             JASON<span className="text-[var(--color-run)]">.</span>LOG
           </span>
         </div>
 
         {/* Sport filter tabs */}
-        <div className="flex items-center gap-1">
+<div className="order-3 flex w-full min-w-0 items-center gap-1 overflow-x-auto pb-1 lg:order-none lg:w-auto lg:overflow-visible lg:pb-0">
           {tabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => { setFilter(tab.value); if (page === 'checkin') onNavigate('home') }}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 lg:py-1.5 rounded-full text-sm font-medium transition-all ${
                 filter === tab.value && page === 'home'
                   ? 'bg-[var(--color-accent)] text-white'
                   : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -68,26 +68,27 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
         </div>
 
         {/* Right nav */}
-        <div className="flex items-center gap-4">
+<div className="flex shrink-0 items-center gap-1 lg:gap-4">
           {/* Page nav */}
           {navItems.map((item) => (
-            <span
-              key={item.label}
-              onClick={() => onNavigate(item.page)}
-              className={`text-sm cursor-pointer transition-colors ${
-                item.page === page
-                  ? 'text-[var(--color-accent)] font-medium'
-                  : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              {item.label}
-            </span>
-          ))}
+  <button
+    type="button"
+    key={item.page}
+    onClick={() => onNavigate(item.page)}
+    className={`min-h-11 px-2 lg:min-h-0 lg:px-0 whitespace-nowrap text-sm cursor-pointer transition-colors ${
+      item.page === page
+        ? 'text-[var(--color-accent)] font-medium'
+        : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
+    }`}
+  >
+    {item.label}
+  </button>
+))}
 
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-card)] transition-colors"
+            className="w-11 h-11 lg:w-8 lg:h-8 flex shrink-0 items-center justify-center rounded-lg hover:bg-[var(--color-card)] transition-colors"
           >
             {dark ? (
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -103,7 +104,7 @@ export function Header({ filter, setFilter, dark, toggleTheme, activities, page,
           {/* Locale toggle */}
           <button
             onClick={() => setLocale(locale === 'zh' ? 'en' : 'zh')}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-card)] transition-colors text-[var(--color-muted)] hover:text-[var(--color-text)] text-xs font-bold"
+            className="w-11 h-11 lg:w-8 lg:h-8 flex shrink-0 items-center justify-center rounded-lg hover:bg-[var(--color-card)] transition-colors text-[var(--color-muted)] hover:text-[var(--color-text)] text-xs font-bold"
           >
             {locale === 'zh' ? 'EN' : '中'}
           </button>
