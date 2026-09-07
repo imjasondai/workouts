@@ -118,7 +118,13 @@ function TrackMap({ activity, activities, dark }: {
     if (map.current) { map.current.setStyle(style); return }
     mapboxgl.accessToken = MAPBOX_TOKEN
     mapReady.current = false
-    map.current = new mapboxgl.Map({ container: mapContainer.current, style, center: [108, 35], zoom: 3 })
+    map.current = new mapboxgl.Map({
+  container: mapContainer.current,
+  style,
+  center: [108, 35],
+  zoom: 3,
+  cooperativeGestures: window.matchMedia('(pointer: coarse)').matches,
+})
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
     map.current.on('style.load', () => {
       mapReady.current = true
