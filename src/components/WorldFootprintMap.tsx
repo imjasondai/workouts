@@ -64,11 +64,37 @@ function loadProvinceData(): Promise<GeoJSON.FeatureCollection> {
 
   return provinceDataPromise
 }
+let countryDataPromise: Promise<GeoJSON.FeatureCollection> | null = null
+
+function loadCountryData(): Promise<GeoJSON.FeatureCollection> {
+  if (!countryDataPromise) {
+    countryDataPromise = fetch(
+      `${import.meta.env.BASE_URL}world-countries.geojson`,
+    )
+      .then(async response => {
+        if (!response.ok) {
+          throw new Error('Unable to load country boundaries')
+        }
+
+        return await response.json() as GeoJSON.FeatureCollection
+      })
+      .catch(error => {
+        countryDataPromise = null
+        throw error
+      })
+  }
+
+  return countryDataPromise
+}
 interface WorldFootprintMapProps {
   mapboxToken: string
   dark?: boolean
   filter?: string
   activities?: Activity[]
+  onGeographyStatsChange?: (stats: {
+    level: 'countries' | 'provinces'
+    count: number | null
+  }) => void
 }
 
 export function WorldFootprintMap({
@@ -76,6 +102,7 @@ export function WorldFootprintMap({
   dark = true,
   filter = 'all',
   activities = [],
+  onGeographyStatsChange,
 }: WorldFootprintMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sportColors: Record<string, string> = {
@@ -93,10 +120,14 @@ highlightColorRef.current = highlightColor
 const mapRef = useRef<mapboxgl.Map | null>(null)
   const activitiesRef = useRef(activities)
 activitiesRef.current = activities
+  const geographyStatsCallbackRef = useRef(onGeographyStatsChange)
+geographyStatsCallbackRef.current = onGeographyStatsChange
   const selectedCountryRef = useRef<string | null>(null)
 const countryAnimationDoneRef = useRef(false)
 const highlightRequestRef = useRef(0)
 const refreshProvinceHighlightRef = useRef<(() => void) | null>(null)
+  const countryStatsRequestRef = useRef(0)
+const refreshCountryStatsRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -202,6 +233,55 @@ map.on('mousemove', 'country-hover-target', event => {
   map.getCanvas().style.cursor = 'pointer'
 })
 
+  refreshCountryStatsRef.current = async () => {
+  const requestId = ++countryStatsRequestRef.current
+  if (selectedCountryRef.current !== null) return
+
+  geographyStatsCallbackRef.current?.({
+    level: 'countries',
+    count: null,
+  })
+
+  try {
+    const data = await loadCountryData()
+
+    if (
+      requestId !== countryStatsRequestRef.current ||
+      mapRef.current !== map ||
+      selectedCountryRef.current !== null
+    ) {
+      return
+    }
+
+    const visitedCountries = new Set<string>()
+
+    for (const activity of activitiesRef.current) {
+      if (!activity.summary_polyline) continue
+
+      try {
+        const firstPoint = polyline.decode(activity.summary_polyline)[0]
+        if (!firstPoint) continue
+
+        const point: [number, number] = [firstPoint[1], firstPoint[0]]
+        const country = data.features.find(
+          feature => pointInProvince(point, feature.geometry),
+        )
+
+        const code = country?.properties?.ADM0_A3
+        if (typeof code === 'string') visitedCountries.add(code)
+      } catch {
+        // Skip invalid routes
+      }
+    }
+
+    geographyStatsCallbackRef.current?.({
+      level: 'countries',
+      count: visitedCountries.size,
+    })
+  } catch (error) {
+    console.error('Country statistics failed:', error)
+  }
+}
   refreshProvinceHighlightRef.current = async () => {
   const requestId = ++highlightRequestRef.current
   const countryCode = selectedCountryRef.current
@@ -264,6 +344,10 @@ map.on('mousemove', 'country-hover-target', event => {
     )
 
     map.setPaintProperty('province-visited-fill', 'fill-opacity', 0.45)
+    geographyStatsCallbackRef.current?.({
+  level: 'provinces',
+  count: visitedCodes.size,
+})
   } catch (error) {
     console.error('Province highlight failed:', error)
   }
@@ -321,7 +405,12 @@ if (typeof countryCode !== 'string') return
 
 ensureProvinceLayers()
     selectedCountryRef.current = countryCode
+    countryStatsRequestRef.current += 1
 countryAnimationDoneRef.current = false
+    geographyStatsCallbackRef.current?.({
+  level: 'provinces',
+  count: null,
+})
 highlightRequestRef.current += 1
 
 map.setPaintProperty('province-visited-fill', 'fill-opacity', 0)
@@ -405,6 +494,7 @@ map.once('moveend', () => {
   
 map.on('mouseleave', 'country-hover-target', clearCountryHover)
 map.on('movestart', clearCountryHover)
+  refreshCountryStatsRef.current?.()
 
   map.flyTo({
     center: [105, 35],
@@ -421,6 +511,8 @@ map.on('movestart', clearCountryHover)
     return () => {
   observer.disconnect()
   highlightRequestRef.current += 1
+      countryStatsRequestRef.current += 1
+refreshCountryStatsRef.current = null
   selectedCountryRef.current = null
   countryAnimationDoneRef.current = false
   refreshProvinceHighlightRef.current = null
@@ -442,7 +534,13 @@ map.on('movestart', clearCountryHover)
   }
 }, [highlightColor])
   useEffect(() => {
-  if (countryAnimationDoneRef.current) {
+  if (selectedCountryRef.current === null) {
+    refreshCountryStatsRef.current?.()
+  } else if (countryAnimationDoneRef.current) {
+    geographyStatsCallbackRef.current?.({
+      level: 'provinces',
+      count: null,
+    })
     refreshProvinceHighlightRef.current?.()
   }
 }, [activities, filter])
@@ -497,6 +595,7 @@ if (map.getLayer('province-visited-fill')) {
     ])
   }
 
+      refreshCountryStatsRef.current?.()
   map.flyTo({
         center: [105, 25],
         zoom: 1.2,
