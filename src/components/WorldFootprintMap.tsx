@@ -231,7 +231,7 @@ map.on('movestart', clearCountryHover)
     type="button"
     title="Back to globe"
     aria-label="Back to globe"
-    className="absolute top-[10px] left-[10px] z-10 flex items-center justify-center bg-white text-black hover:bg-gray-100"
+    className="absolute top-[10px] left-[10px] z-10 flex items-center justify-center bg-white text-black cursor-pointer hover:bg-gray-200 active:bg-gray-300 active:scale-95 transition-colors duration-150"
     style={{
       width: 29,
       height: 29,
