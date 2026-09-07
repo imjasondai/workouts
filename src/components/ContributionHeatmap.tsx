@@ -242,11 +242,14 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
 
   const element = captureRef.current
   const previousOverflow = element.style.overflow
+    const scrollArea = element.querySelector<HTMLElement>('.heatmap-scroll')
+const previousScrollLeft = scrollArea?.scrollLeft ?? 0
   setExporting(true)
 
   try {
     element.classList.add('exporting')
     element.style.overflow = 'visible'
+    if (scrollArea) scrollArea.scrollLeft = 0
 
     await document.fonts.ready
     await new Promise<void>(resolve =>
@@ -308,6 +311,7 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
   } finally {
     element.classList.remove('exporting')
     element.style.overflow = previousOverflow
+    if (scrollArea) scrollArea.scrollLeft = previousScrollLeft
     setExporting(false)
   }
 }
@@ -331,7 +335,7 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
   }, [yearData, selectedYear])
 
   return (
-    <div ref={captureRef} className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5 overflow-x-auto">
+    <div ref={captureRef} className="min-w-0 bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-4 lg:p-5">
       <style>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(8px); }
@@ -348,6 +352,11 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
         .heatmap-year-row {
           animation: fadeSlideIn 0.32s ease-out both;
         }
+        .exporting .heatmap-scroll {
+  overflow: visible !important;
+  width: max-content !important;
+  min-width: 100%;
+}
         .exporting,
         .exporting *,
         .exporting *::before,
@@ -428,14 +437,18 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
       </div>
 
       {/* Year grid(s) */}
-      <div
-        className={selectedYear === 'all' ? 'heatmap-all-years space-y-8' : 'space-y-6'}
-        key={String(selectedYear)}
-      >
+<div
+  className={`heatmap-scroll min-w-0 overflow-x-auto pb-2 ${
+    selectedYear === 'all'
+      ? 'heatmap-all-years space-y-8'
+      : 'space-y-6'
+  }`}
+  key={String(selectedYear)}
+>
         {yearData.map(({ year: yr, grid, max, monthPositions, stats }, idx) => (
           <div
             key={yr}
-            className="heatmap-year-row"
+            className="heatmap-year-row w-max min-w-full"
             style={{ animationDelay: `${idx * 60}ms` }}
           >
             {/* Year label when showing all */}
@@ -547,8 +560,10 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
                   </span>
                 ))}
             </div>
-            <div className="flex items-end justify-end gap-4 text-sm text-[var(--color-muted)] -mt-1">
-              <div className="mr-auto"><BrandingBar /></div>
+            <div className="flex flex-wrap items-center justify-start gap-x-4 gap-y-3 mt-3 text-sm text-[var(--color-muted)] lg:flex-nowrap lg:items-end lg:justify-end lg:gap-4 lg:-mt-1">
+              <div className="w-full min-w-0 lg:w-auto lg:mr-auto [&_img]:shrink-0 [&_span]:break-words">
+  <BrandingBar />
+</div>
               <span className="font-mono flex items-center gap-1">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 {allStats.count} {locale === 'zh' ? '次' : 'sessions'}
@@ -583,7 +598,7 @@ export function ContributionHeatmap({ activities, year: defaultYear, filter, onS
                 ))}
             </div>
           )}
-          <div className="flex items-end justify-end gap-4 text-sm text-[var(--color-muted)] -mt-1">
+          <div className="flex flex-wrap items-center justify-start gap-x-4 gap-y-3 mt-3 text-sm text-[var(--color-muted)] lg:flex-nowrap lg:items-end lg:justify-end lg:gap-4 lg:-mt-1">
             <div className="mr-auto"><BrandingBar /></div>
             <span className="font-mono flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
