@@ -89,6 +89,7 @@ export default function App() {
               mapboxToken={MAPBOX_TOKEN}
               dark={dark}
               filter={filter}
+              activities={filtered}
             />
             <RouteMap
               activities={provinceFiltered}
