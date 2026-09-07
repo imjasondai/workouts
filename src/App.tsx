@@ -86,9 +86,10 @@ export default function App() {
           <div className="flex flex-col gap-6 min-w-0 overflow-hidden">
             <ProfileCard activities={activities} filter={filter} />
             <WorldFootprintMap
-  mapboxToken={MAPBOX_TOKEN}
-  dark={dark}
-/>
+              mapboxToken={MAPBOX_TOKEN}
+              dark={dark}
+              filter={filter}
+            />
             <RouteMap
               activities={provinceFiltered}
               selectedActivity={selectedActivity}
