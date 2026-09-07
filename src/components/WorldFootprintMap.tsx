@@ -219,6 +219,21 @@ map.on('movestart', clearCountryHover)
     <section className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
       <div className="px-5 py-4">
         <h2 className="text-base font-semibold">Footprint Map</h2>
+        <button
+  type="button"
+  className="mt-2 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
+  onClick={() => {
+    mapRef.current?.flyTo({
+      center: [105, 25],
+      zoom: 1.2,
+      bearing: 0,
+      pitch: 0,
+      duration: 1500,
+    })
+  }}
+>
+  Back to globe
+</button>
       </div>
       <div
         ref={containerRef}
