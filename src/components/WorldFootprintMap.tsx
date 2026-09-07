@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import chinaProvinces from '../assets/china-provinces.json'
 
 interface WorldFootprintMapProps {
   mapboxToken: string
@@ -61,30 +60,80 @@ const mapRef = useRef<mapboxgl.Map | null>(null)
     mapRef.current = map
 
 map.once('load', () => {
-  map.addSource('china-highlight', {
-    type: 'geojson',
-    data: chinaProvinces as unknown as GeoJSON.FeatureCollection,
-  })
+  map.addSource('world-countries', {
+  type: 'geojson',
+  data: `${import.meta.env.BASE_URL}world-countries.geojson`,
+  generateId: true,
+})
 
-  map.addLayer({
-    id: 'china-highlight-fill',
-    type: 'fill',
-    source: 'china-highlight',
-    paint: {
-      'fill-color': highlightColorRef.current,
-      'fill-opacity': 0,
-      'fill-opacity-transition': {
-        duration: 800,
-        delay: 0,
-      },
-    },
-  })
+// Transparent layer for detecting the country under the mouse
+map.addLayer({
+  id: 'country-hover-target',
+  type: 'fill',
+  source: 'world-countries',
+  paint: {
+    'fill-color': '#ffffff',
+    'fill-opacity': 0,
+  },
+})
 
-  map.once('moveend', () => {
-    if (map.getLayer('china-highlight-fill')) {
-      map.setPaintProperty('china-highlight-fill', 'fill-opacity', 0.5)
-    }
-  })
+// Show only the hovered country's outline
+map.addLayer({
+  id: 'country-hover-outline',
+  type: 'line',
+  source: 'world-countries',
+  paint: {
+    'line-color': highlightColorRef.current,
+    'line-width': 2,
+    'line-opacity': [
+      'case',
+      ['boolean', ['feature-state', 'hover'], false],
+      1,
+      0,
+    ],
+  },
+})
+
+  let hoveredCountryId: string | number | null = null
+
+function clearCountryHover() {
+  if (hoveredCountryId !== null) {
+    map.setFeatureState(
+      { source: 'world-countries', id: hoveredCountryId },
+      { hover: false },
+    )
+    hoveredCountryId = null
+  }
+
+  map.getCanvas().style.cursor = ''
+}
+
+map.on('mousemove', 'country-hover-target', event => {
+  if (map.isMoving()) return
+
+  const country = event.features?.[0]
+  const countryId = country?.id
+
+  if (countryId === undefined) {
+    clearCountryHover()
+    return
+  }
+
+  if (countryId !== hoveredCountryId) {
+    clearCountryHover()
+    hoveredCountryId = countryId
+
+    map.setFeatureState(
+      { source: 'world-countries', id: countryId },
+      { hover: true },
+    )
+  }
+
+  map.getCanvas().style.cursor = 'pointer'
+})
+
+map.on('mouseleave', 'country-hover-target', clearCountryHover)
+map.on('movestart', clearCountryHover)
 
   map.flyTo({
     center: [105, 35],
@@ -106,11 +155,11 @@ map.once('load', () => {
   }, [mapboxToken, dark])
   useEffect(() => {
   const map = mapRef.current
-  if (!map || !map.getLayer('china-highlight-fill')) return
+  if (!map || !map.getLayer('country-hover-outline')) return
 
   map.setPaintProperty(
-    'china-highlight-fill',
-    'fill-color',
+    'country-hover-outline',
+    'line-color',
     highlightColor,
   )
 }, [highlightColor])
