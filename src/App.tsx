@@ -30,6 +30,13 @@ export default function App() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [selectedProvince] = useState<string | null>(null)
   const [page, setPage] = useState<Page>('home')
+  const [geographyStats, setGeographyStats] = useState<{
+  level: 'countries' | 'provinces'
+  count: number | null
+}>({
+  level: 'countries',
+  count: null,
+})
 
   const years = getAvailableYears(activities)
   const filtered = useFilteredActivities(activities, filter, year)
@@ -84,12 +91,17 @@ export default function App() {
 
           {/* Right column */}
           <div className="flex flex-col gap-6 min-w-0 overflow-hidden">
-            <ProfileCard activities={activities} filter={filter} />
+            <ProfileCard
+  activities={activities}
+  filter={filter}
+  geographyStats={geographyStats}
+/>
             <WorldFootprintMap
               mapboxToken={MAPBOX_TOKEN}
               dark={dark}
               filter={filter}
               activities={filtered}
+              onGeographyStatsChange={setGeographyStats}
             />
             <RouteMap
               activities={provinceFiltered}
