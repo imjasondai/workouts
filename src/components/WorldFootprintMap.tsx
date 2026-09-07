@@ -219,27 +219,52 @@ map.on('movestart', clearCountryHover)
     <section className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
       <div className="px-5 py-4">
         <h2 className="text-base font-semibold">Footprint Map</h2>
-        <button
-  type="button"
-  className="mt-2 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
-  onClick={() => {
-    mapRef.current?.flyTo({
-      center: [105, 25],
-      zoom: 1.2,
-      bearing: 0,
-      pitch: 0,
-      duration: 1500,
-    })
-  }}
->
-  Back to globe
-</button>
       </div>
-      <div
-        ref={containerRef}
-        className="w-full"
-        style={{ height: 380 }}
-      />
+      <div className="relative">
+  <div
+    ref={containerRef}
+    className="w-full"
+    style={{ height: 380 }}
+  />
+
+  <button
+    type="button"
+    title="Back to globe"
+    aria-label="Back to globe"
+    className="absolute top-[10px] left-[10px] z-10 flex items-center justify-center bg-white text-black hover:bg-gray-100"
+    style={{
+      width: 29,
+      height: 29,
+      borderRadius: 4,
+      boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.1)',
+    }}
+    onClick={() => {
+      mapRef.current?.flyTo({
+        center: [105, 25],
+        zoom: 1.2,
+        bearing: 0,
+        pitch: 0,
+        duration: 1500,
+      })
+    }}
+  >
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <ellipse cx="12" cy="12" rx="4" ry="9" />
+      <path d="M3 12h18" />
+    </svg>
+  </button>
+</div>
     </section>
   )
 }
