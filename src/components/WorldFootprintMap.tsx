@@ -132,6 +132,57 @@ map.on('mousemove', 'country-hover-target', event => {
   map.getCanvas().style.cursor = 'pointer'
 })
 
+map.on('click', 'country-hover-target', event => {
+  const country = event.features?.[0]
+  if (!country) return
+
+  const geometry = country.geometry
+  if (
+    geometry.type !== 'Polygon' &&
+    geometry.type !== 'MultiPolygon'
+  ) {
+    return
+  }
+
+  const bounds = new mapboxgl.LngLatBounds()
+  const clickedLongitude = event.lngLat.lng
+
+  function extendBounds(value: unknown): void {
+    if (!Array.isArray(value)) return
+
+    if (
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    ) {
+      let longitude = value[0]
+
+      while (longitude - clickedLongitude > 180) longitude -= 360
+      while (longitude - clickedLongitude < -180) longitude += 360
+
+      bounds.extend([longitude, value[1]])
+      return
+    }
+
+    for (const child of value) {
+      extendBounds(child)
+    }
+  }
+
+  extendBounds(geometry.coordinates)
+  if (bounds.isEmpty()) return
+
+  clearCountryHover()
+
+  map.fitBounds(bounds, {
+    padding: 35,
+    maxZoom: 7,
+    duration: 2000,
+    bearing: 0,
+    pitch: 0,
+  })
+})
+  
 map.on('mouseleave', 'country-hover-target', clearCountryHover)
 map.on('movestart', clearCountryHover)
 
