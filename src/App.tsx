@@ -14,9 +14,10 @@ import { CalendarWidget } from './components/CalendarWidget'
 import { ProfileCard } from './components/ProfileCard'
 import { PersonalBest } from './components/PersonalBest'
 import { TracksPage } from './components/TracksPage'
-import { ChinaMap } from './components/ChinaMap'
+import { WorldFootprintMap } from './components/WorldFootprintMap'
 import { CheckinPage } from './components/CheckinPage'
 import rawActivities from './static/activities.json'
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
 
 const activities = rawActivities as Activity[]
 
@@ -27,7 +28,7 @@ export default function App() {
   const [filter, setFilter] = useState<SportFilter>('all')
   const [year, setYear] = useState<number | null>(null)
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
-  const [selectedProvince, setSelectedProvince] = useState<string | null>(null)
+  const [selectedProvince] = useState<string | null>(null)
   const [page, setPage] = useState<Page>('home')
 
   const years = getAvailableYears(activities)
@@ -84,15 +85,10 @@ export default function App() {
           {/* Right column */}
           <div className="flex flex-col gap-6 min-w-0 overflow-hidden">
             <ProfileCard activities={activities} filter={filter} />
-            <ChinaMap
-              activities={filtered}
-              filter={filter}
-              selectedProvince={selectedProvince}
-              onSelectProvince={(p) => {
-                setSelectedProvince(p)
-                setSelectedActivity(null)
-              }}
-            />
+            <WorldFootprintMap
+  mapboxToken={MAPBOX_TOKEN}
+  dark={dark}
+/>
             <RouteMap
               activities={provinceFiltered}
               selectedActivity={selectedActivity}
