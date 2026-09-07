@@ -1,17 +1,81 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import type { Activity } from '../types'
+import * as polyline from '@mapbox/polyline'
 
+function pointInProvince(
+  point: [number, number],
+  geometry: GeoJSON.Geometry,
+): boolean {
+  function insideRing(ring: number[][]): boolean {
+    const [x, y] = point
+    let inside = false
+
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i]
+      const [xj, yj] = ring[j]
+
+      if (
+        (yi > y) !== (yj > y) &&
+        x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+      ) {
+        inside = !inside
+      }
+    }
+
+    return inside
+  }
+
+  function insidePolygon(rings: number[][][]): boolean {
+    if (!rings.length || !insideRing(rings[0])) return false
+    return !rings.slice(1).some(insideRing)
+  }
+
+  if (geometry.type === 'Polygon') {
+    return insidePolygon(geometry.coordinates)
+  }
+
+  if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.some(insidePolygon)
+  }
+
+  return false
+}
+let provinceDataPromise: Promise<GeoJSON.FeatureCollection> | null = null
+
+function loadProvinceData(): Promise<GeoJSON.FeatureCollection> {
+  if (!provinceDataPromise) {
+    provinceDataPromise = fetch(
+      `${import.meta.env.BASE_URL}world-provinces.geojson`,
+    )
+      .then(async response => {
+        if (!response.ok) {
+          throw new Error('Unable to load province boundaries')
+        }
+
+        return await response.json() as GeoJSON.FeatureCollection
+      })
+      .catch(error => {
+        provinceDataPromise = null
+        throw error
+      })
+  }
+
+  return provinceDataPromise
+}
 interface WorldFootprintMapProps {
   mapboxToken: string
   dark?: boolean
   filter?: string
+  activities?: Activity[]
 }
 
 export function WorldFootprintMap({
   mapboxToken,
   dark = true,
   filter = 'all',
+  activities = [],
 }: WorldFootprintMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sportColors: Record<string, string> = {
@@ -27,6 +91,12 @@ const highlightColor = sportColors[filter] ?? sportColors.all
 const highlightColorRef = useRef(highlightColor)
 highlightColorRef.current = highlightColor
 const mapRef = useRef<mapboxgl.Map | null>(null)
+  const activitiesRef = useRef(activities)
+activitiesRef.current = activities
+  const selectedCountryRef = useRef<string | null>(null)
+const countryAnimationDoneRef = useRef(false)
+const highlightRequestRef = useRef(0)
+const refreshProvinceHighlightRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -132,6 +202,72 @@ map.on('mousemove', 'country-hover-target', event => {
   map.getCanvas().style.cursor = 'pointer'
 })
 
+  refreshProvinceHighlightRef.current = async () => {
+  const requestId = ++highlightRequestRef.current
+  const countryCode = selectedCountryRef.current
+
+  if (
+    !countryCode ||
+    !countryAnimationDoneRef.current ||
+    !map.getLayer('province-visited-fill')
+  ) {
+    return
+  }
+
+  try {
+    const data = await loadProvinceData()
+
+    if (
+      requestId !== highlightRequestRef.current ||
+      mapRef.current !== map ||
+      selectedCountryRef.current !== countryCode ||
+      !countryAnimationDoneRef.current
+    ) {
+      return
+    }
+
+    const provinces = data.features.filter(
+      feature => feature.properties?.adm0_a3 === countryCode,
+    )
+
+    const visitedCodes = new Set<string>()
+
+    for (const activity of activitiesRef.current) {
+      if (!activity.summary_polyline) continue
+
+      try {
+        const firstPoint = polyline.decode(activity.summary_polyline)[0]
+        if (!firstPoint) continue
+
+        const point: [number, number] = [firstPoint[1], firstPoint[0]]
+        const province = provinces.find(
+          feature => pointInProvince(point, feature.geometry),
+        )
+
+        const code = province?.properties?.adm1_code
+        if (typeof code === 'string') visitedCodes.add(code)
+      } catch {
+        // Skip invalid routes
+      }
+    }
+
+    map.setFilter('province-visited-fill', [
+      'all',
+      ['==', ['get', 'adm0_a3'], countryCode],
+      ['in', ['get', 'adm1_code'], ['literal', [...visitedCodes]]],
+    ])
+
+    map.setPaintProperty(
+      'province-visited-fill',
+      'fill-color',
+      highlightColorRef.current,
+    )
+
+    map.setPaintProperty('province-visited-fill', 'fill-opacity', 0.45)
+  } catch (error) {
+    console.error('Province highlight failed:', error)
+  }
+}
   function ensureProvinceLayers() {
   if (map.getSource('world-provinces')) return
 
@@ -151,6 +287,20 @@ map.on('mousemove', 'country-hover-target', event => {
     },
   })
 
+    map.addLayer({
+  id: 'province-visited-fill',
+  type: 'fill',
+  source: 'world-provinces',
+  filter: ['==', ['get', 'adm0_a3'], ''],
+  paint: {
+    'fill-color': highlightColorRef.current,
+    'fill-opacity': 0,
+    'fill-opacity-transition': {
+      duration: 800,
+      delay: 0,
+    },
+  },
+})
   map.addLayer({
     id: 'province-boundaries',
     type: 'line',
@@ -170,6 +320,16 @@ map.on('mousemove', 'country-hover-target', event => {
 if (typeof countryCode !== 'string') return
 
 ensureProvinceLayers()
+    selectedCountryRef.current = countryCode
+countryAnimationDoneRef.current = false
+highlightRequestRef.current += 1
+
+map.setPaintProperty('province-visited-fill', 'fill-opacity', 0)
+map.setFilter('province-visited-fill', [
+  '==',
+  ['get', 'adm0_a3'],
+  '',
+])
 
 map.setFilter('province-hover-target', [
   '==',
@@ -221,6 +381,19 @@ map.setFilter('province-boundaries', [
 
   clearCountryHover()
 
+    const animationRequest = highlightRequestRef.current
+
+map.once('moveend', () => {
+  if (
+    selectedCountryRef.current !== countryCode ||
+    highlightRequestRef.current !== animationRequest
+  ) {
+    return
+  }
+
+  countryAnimationDoneRef.current = true
+  refreshProvinceHighlightRef.current?.()
+})
   map.fitBounds(bounds, {
     padding: 35,
     maxZoom: 7,
@@ -247,6 +420,10 @@ map.on('movestart', clearCountryHover)
 
     return () => {
   observer.disconnect()
+  highlightRequestRef.current += 1
+  selectedCountryRef.current = null
+  countryAnimationDoneRef.current = false
+  refreshProvinceHighlightRef.current = null
   mapRef.current = null
   map.remove()
 }
@@ -264,6 +441,11 @@ map.on('movestart', clearCountryHover)
     }
   }
 }, [highlightColor])
+  useEffect(() => {
+  if (countryAnimationDoneRef.current) {
+    refreshProvinceHighlightRef.current?.()
+  }
+}, [activities, filter])
 
   return (
     <section className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
@@ -291,7 +473,18 @@ map.on('movestart', clearCountryHover)
     onClick={() => {
   const map = mapRef.current
   if (!map) return
+selectedCountryRef.current = null
+countryAnimationDoneRef.current = false
+highlightRequestRef.current += 1
 
+if (map.getLayer('province-visited-fill')) {
+  map.setPaintProperty('province-visited-fill', 'fill-opacity', 0)
+  map.setFilter('province-visited-fill', [
+    '==',
+    ['get', 'adm0_a3'],
+    '',
+  ])
+}
   if (map.getLayer('province-hover-target')) {
     map.setFilter('province-hover-target', [
       '==', ['get', 'adm0_a3'], '',
