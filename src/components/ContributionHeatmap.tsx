@@ -561,9 +561,10 @@ const previousScrollLeft = scrollArea?.scrollLeft ?? 0
                 ))}
             </div>
             <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-2 mt-3 text-xs text-[var(--color-muted)] lg:items-end lg:justify-end lg:text-sm lg:gap-x-4 lg:-mt-1">
-              <div className="w-full min-w-0 lg:w-auto lg:mr-auto [&_img]:shrink-0 [&_span]:break-words">
+              <div className="min-w-0 max-w-full mr-auto shrink-0 [&_img]:shrink-0 [&_span]:break-words">
   <BrandingBar />
 </div>
+              <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-2 lg:gap-x-4">
               <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 {allStats.count} {locale === 'zh' ? '次' : 'sessions'}
@@ -578,6 +579,7 @@ const previousScrollLeft = scrollArea?.scrollLeft ?? 0
                   {formatDistance(allStats.distance)} km
                 </span>
               )}
+                </div>
             </div>
           </div>
         )
@@ -599,7 +601,10 @@ const previousScrollLeft = scrollArea?.scrollLeft ?? 0
             </div>
           )}
           <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-2 mt-3 text-xs text-[var(--color-muted)] lg:items-end lg:justify-end lg:text-sm lg:gap-x-4 lg:-mt-1">
-            <div className="mr-auto"><BrandingBar /></div>
+            <div className="min-w-0 max-w-full mr-auto shrink-0 [&_img]:shrink-0 [&_span]:break-words">
+  <BrandingBar />
+</div>
+            <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-2 lg:gap-x-4">
             <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               {yearData[0].stats.count} {locale === 'zh' ? '次' : 'sessions'}
@@ -620,6 +625,7 @@ const previousScrollLeft = scrollArea?.scrollLeft ?? 0
                 {formatPace(yearData[0].stats.pace)}
               </span>
             )}
+              </div>
           </div>
         </div>
       )}
