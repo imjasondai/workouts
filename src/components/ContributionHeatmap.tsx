@@ -560,20 +560,20 @@ const previousScrollLeft = scrollArea?.scrollLeft ?? 0
                   </span>
                 ))}
             </div>
-            <div className="flex flex-wrap items-center justify-start gap-x-4 gap-y-3 mt-3 text-sm text-[var(--color-muted)] lg:flex-nowrap lg:items-end lg:justify-end lg:gap-4 lg:-mt-1">
+            <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-2 mt-3 text-xs text-[var(--color-muted)] lg:items-end lg:justify-end lg:text-sm lg:gap-x-4 lg:-mt-1">
               <div className="w-full min-w-0 lg:w-auto lg:mr-auto [&_img]:shrink-0 [&_span]:break-words">
   <BrandingBar />
 </div>
-              <span className="font-mono flex items-center gap-1">
+              <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 {allStats.count} {locale === 'zh' ? '次' : 'sessions'}
               </span>
-              <span className="font-mono flex items-center gap-1">
+              <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 {(allStats.time / 3600).toFixed(0)}h
               </span>
               {!isGym && (
-                <span className="font-mono flex items-center gap-1">
+                <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                   {formatDistance(allStats.distance)} km
                 </span>
@@ -598,24 +598,24 @@ const previousScrollLeft = scrollArea?.scrollLeft ?? 0
                 ))}
             </div>
           )}
-          <div className="flex flex-wrap items-center justify-start gap-x-4 gap-y-3 mt-3 text-sm text-[var(--color-muted)] lg:flex-nowrap lg:items-end lg:justify-end lg:gap-4 lg:-mt-1">
+          <div className="flex flex-wrap items-center justify-start gap-x-3 gap-y-2 mt-3 text-xs text-[var(--color-muted)] lg:items-end lg:justify-end lg:text-sm lg:gap-x-4 lg:-mt-1">
             <div className="mr-auto"><BrandingBar /></div>
-            <span className="font-mono flex items-center gap-1">
+            <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               {yearData[0].stats.count} {locale === 'zh' ? '次' : 'sessions'}
             </span>
-            <span className="font-mono flex items-center gap-1">
+            <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               {(yearData[0].stats.time / 3600).toFixed(0)}h
             </span>
             {!isGym && (
-              <span className="font-mono flex items-center gap-1">
+              <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                 {formatDistance(yearData[0].stats.distance)} km
               </span>
             )}
             {filter === 'Run' && yearData[0].stats.pace > 0 && (
-              <span className="font-mono flex items-center gap-1">
+              <span className="font-mono flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
                 {formatPace(yearData[0].stats.pace)}
               </span>
