@@ -564,7 +564,16 @@ void loadCountryData()
       }
     }
 
-    extendChinaBounds(china.geometry.coordinates)
+    const chinaGeometry = china.geometry
+
+if (
+  chinaGeometry.type !== 'Polygon' &&
+  chinaGeometry.type !== 'MultiPolygon'
+) {
+  return
+}
+
+extendChinaBounds(chinaGeometry.coordinates)
 
     if (!bounds.isEmpty()) {
       map.fitBounds(bounds, {
