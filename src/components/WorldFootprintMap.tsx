@@ -327,8 +327,9 @@ map.on('mousemove', 'country-hover-target', event => {
     )
 
     const visitedCodes = new Set<string>()
+const activityIdsByProvince = new Map<string, number[]>()
 
-    for (const activity of activitiesRef.current) {
+for (const activity of activitiesRef.current) {
       if (!activity.summary_polyline) continue
 
       try {
@@ -341,12 +342,19 @@ map.on('mousemove', 'country-hover-target', event => {
         )
 
         const code = province?.properties?.adm1_code
-        if (typeof code === 'string') visitedCodes.add(code)
+
+if (typeof code === 'string') {
+  visitedCodes.add(code)
+
+  const activityIds = activityIdsByProvince.get(code) ?? []
+  activityIds.push(activity.run_id)
+  activityIdsByProvince.set(code, activityIds)
+}
       } catch {
         // Skip invalid routes
       }
     }
-
+    visitedProvinceActivitiesRef.current = activityIdsByProvince
     map.setFilter('province-visited-fill', [
       'all',
       ['==', ['get', 'adm0_a3'], countryCode],
@@ -507,7 +515,115 @@ map.once('moveend', () => {
     pitch: 0,
   })
 })
-  
+map.on('click', 'province-visited-fill', event => {
+  const province = event.features?.[0]
+  if (!province) return
+
+  const provinceCode = province.properties?.adm1_code
+  const provinceName =
+    province.properties?.name_zh ||
+    province.properties?.name_en ||
+    province.properties?.name ||
+    provinceCode
+
+  if (
+    typeof provinceCode !== 'string' ||
+    typeof provinceName !== 'string'
+  ) {
+    return
+  }
+
+  const activityIds =
+    visitedProvinceActivitiesRef.current.get(provinceCode) ?? []
+
+  // Only visited provinces/states can be selected.
+  if (activityIds.length === 0) return
+
+  const geometry = province.geometry
+
+  if (
+    geometry.type !== 'Polygon' &&
+    geometry.type !== 'MultiPolygon'
+  ) {
+    return
+  }
+
+  // Remove the province colour blocks.
+  map.setPaintProperty(
+    'province-visited-fill',
+    'fill-opacity',
+    0,
+  )
+
+  map.setFilter('province-visited-fill', [
+    '==',
+    ['get', 'adm1_code'],
+    '',
+  ])
+
+  // Retain only the selected province/state outline.
+  map.setFilter('province-boundaries', [
+    '==',
+    ['get', 'adm1_code'],
+    provinceCode,
+  ])
+
+  map.setFilter('province-hover-target', [
+    '==',
+    ['get', 'adm1_code'],
+    provinceCode,
+  ])
+
+  map.setPaintProperty(
+    'province-boundaries',
+    'line-color',
+    highlightColorRef.current,
+  )
+
+  map.setPaintProperty(
+    'province-boundaries',
+    'line-width',
+    2.5,
+  )
+
+  const bounds = new mapboxgl.LngLatBounds()
+
+  function extendProvinceBounds(value: unknown): void {
+    if (!Array.isArray(value)) return
+
+    if (
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    ) {
+      bounds.extend([value[0], value[1]])
+      return
+    }
+
+    for (const child of value) {
+      extendProvinceBounds(child)
+    }
+  }
+
+  extendProvinceBounds(geometry.coordinates)
+
+  provinceSelectCallbackRef.current?.({
+    code: provinceCode,
+    name: provinceName,
+    activityIds,
+  })
+
+  if (!bounds.isEmpty()) {
+    map.fitBounds(bounds, {
+      padding: 40,
+      maxZoom: 9,
+      duration: 1800,
+      bearing: 0,
+      pitch: 0,
+      essential: true,
+    })
+  }
+})  
 map.on('mouseleave', 'country-hover-target', clearCountryHover)
 map.on('movestart', clearCountryHover)
   const defaultCountryCode = 'CHN'
