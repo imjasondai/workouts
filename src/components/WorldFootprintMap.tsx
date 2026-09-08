@@ -142,8 +142,8 @@ const refreshCountryStatsRef = useRef<(() => void) | null>(null)
         ? 'mapbox://styles/mapbox/dark-v11'
         : 'mapbox://styles/mapbox/light-v11',
       projection: 'globe',
-      center: [104, 35],
-zoom: 2.4,
+      center: [-60, 20],
+zoom: 1.15,
       minZoom: 0,
       maxZoom: 12,
       attributionControl: true,
@@ -503,9 +503,11 @@ map.on('movestart', clearCountryHover)
 ensureProvinceLayers()
 
 selectedCountryRef.current = defaultCountryCode
-countryAnimationDoneRef.current = true
+countryAnimationDoneRef.current = false
 countryStatsRequestRef.current += 1
 highlightRequestRef.current += 1
+
+const animationRequest = highlightRequestRef.current
 
 geographyStatsCallbackRef.current?.({
   level: 'provinces',
@@ -524,6 +526,12 @@ map.setFilter('province-boundaries', [
   defaultCountryCode,
 ])
 
+map.setPaintProperty(
+  'province-visited-fill',
+  'fill-opacity',
+  0,
+)
+
 map.setFilter('province-visited-fill', [
   '==',
   ['get', 'adm0_a3'],
@@ -540,10 +548,20 @@ void loadCountryData()
     }
 
     const china = data.features.find(
-      feature => feature.properties?.ADM0_A3 === defaultCountryCode,
+      feature =>
+        feature.properties?.ADM0_A3 === defaultCountryCode,
     )
 
     if (!china) return
+
+    const chinaGeometry = china.geometry
+
+    if (
+      chinaGeometry.type !== 'Polygon' &&
+      chinaGeometry.type !== 'MultiPolygon'
+    ) {
+      return
+    }
 
     const bounds = new mapboxgl.LngLatBounds()
 
@@ -564,32 +582,35 @@ void loadCountryData()
       }
     }
 
-    const chinaGeometry = china.geometry
+    extendChinaBounds(chinaGeometry.coordinates)
 
-if (
-  chinaGeometry.type !== 'Polygon' &&
-  chinaGeometry.type !== 'MultiPolygon'
-) {
-  return
-}
+    if (bounds.isEmpty()) return
 
-extendChinaBounds(chinaGeometry.coordinates)
+    map.once('moveend', () => {
+      if (
+        mapRef.current !== map ||
+        selectedCountryRef.current !== defaultCountryCode ||
+        highlightRequestRef.current !== animationRequest
+      ) {
+        return
+      }
 
-    if (!bounds.isEmpty()) {
-      map.fitBounds(bounds, {
-        padding: 20,
-        maxZoom: 4,
-        duration: 0,
-        bearing: 0,
-        pitch: 0,
-      })
-    }
+      countryAnimationDoneRef.current = true
+      refreshProvinceHighlightRef.current?.()
+    })
+
+    map.fitBounds(bounds, {
+      padding: 20,
+      maxZoom: 4,
+      duration: 2400,
+      bearing: 0,
+      pitch: 0,
+      essential: true,
+    })
   })
   .catch(error => {
-    console.error('Unable to focus China:', error)
+    console.error('Unable to animate to China:', error)
   })
-
-refreshProvinceHighlightRef.current?.()
   })
     const observer = new ResizeObserver(() => map.resize())
     observer.observe(containerRef.current)
