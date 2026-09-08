@@ -86,11 +86,17 @@ function loadCountryData(): Promise<GeoJSON.FeatureCollection> {
 
   return countryDataPromise
 }
+export interface ProvinceSelection {
+  code: string
+  name: string
+  activityIds: number[]
+}
 interface WorldFootprintMapProps {
   mapboxToken: string
   dark?: boolean
   filter?: string
   activities?: Activity[]
+  onProvinceSelect?: (selection: ProvinceSelection | null) => void
   onGeographyStatsChange?: (stats: {
     level: 'countries' | 'provinces'
     count: number | null
@@ -102,6 +108,7 @@ export function WorldFootprintMap({
   dark = true,
   filter = 'all',
   activities = [],
+  onProvinceSelect,
   onGeographyStatsChange,
 }: WorldFootprintMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -126,6 +133,11 @@ geographyStatsCallbackRef.current = onGeographyStatsChange
 const countryAnimationDoneRef = useRef(false)
 const highlightRequestRef = useRef(0)
 const refreshProvinceHighlightRef = useRef<(() => void) | null>(null)
+  const provinceSelectCallbackRef = useRef(onProvinceSelect)
+provinceSelectCallbackRef.current = onProvinceSelect
+
+const visitedProvinceActivitiesRef =
+  useRef<Map<string, number[]>>(new Map())
   const countryStatsRequestRef = useRef(0)
 const refreshCountryStatsRef = useRef<(() => void) | null>(null)
 
