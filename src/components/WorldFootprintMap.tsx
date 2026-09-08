@@ -581,6 +581,7 @@ void loadCountryData()
   })
 
 refreshProvinceHighlightRef.current?.()
+  })
     const observer = new ResizeObserver(() => map.resize())
     observer.observe(containerRef.current)
 
