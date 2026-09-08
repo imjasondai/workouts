@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react'
 import './index.css'
 import type { Activity, SportFilter } from './types'
-import { useFilteredActivities, getAvailableYears, extractActivityProvince } from './hooks/useActivities'
+import {
+  useFilteredActivities,
+  getAvailableYears,
+} from './hooks/useActivities'
 import { useTheme } from './hooks/useTheme'
 import { LocaleProvider } from './hooks/useLocale'
 import { GitHubAuthProvider } from './hooks/useGitHubAuthContext'
