@@ -802,39 +802,70 @@ height: 'var(--globe-control-size, 29px)',
     onClick={() => {
   const map = mapRef.current
   if (!map) return
-selectedCountryRef.current = null
-countryAnimationDoneRef.current = false
-highlightRequestRef.current += 1
 
-if (map.getLayer('province-visited-fill')) {
-  map.setPaintProperty('province-visited-fill', 'fill-opacity', 0)
-  map.setFilter('province-visited-fill', [
-    '==',
-    ['get', 'adm0_a3'],
-    '',
-  ])
-}
+  selectedCountryRef.current = null
+  countryAnimationDoneRef.current = false
+  highlightRequestRef.current += 1
+
+  provinceSelectCallbackRef.current?.(null)
+
+  geographyStatsCallbackRef.current?.({
+    level: 'countries',
+    count: null,
+  })
+
+  if (map.getLayer('province-visited-fill')) {
+    map.setPaintProperty(
+      'province-visited-fill',
+      'fill-opacity',
+      0,
+    )
+
+    map.setFilter('province-visited-fill', [
+      '==',
+      ['get', 'adm0_a3'],
+      '',
+    ])
+  }
+
   if (map.getLayer('province-hover-target')) {
     map.setFilter('province-hover-target', [
-      '==', ['get', 'adm0_a3'], '',
+      '==',
+      ['get', 'adm0_a3'],
+      '',
     ])
   }
 
   if (map.getLayer('province-boundaries')) {
     map.setFilter('province-boundaries', [
-      '==', ['get', 'adm0_a3'], '',
+      '==',
+      ['get', 'adm0_a3'],
+      '',
     ])
+
+    map.setPaintProperty(
+      'province-boundaries',
+      'line-width',
+      1,
+    )
   }
 
+  // Start the animation before recalculating country statistics.
+  map.once('moveend', () => {
+    window.setTimeout(() => {
       refreshCountryStatsRef.current?.()
+    }, 0)
+  })
+
   map.flyTo({
-        center: [105, 25],
-        zoom: 1.2,
-        bearing: 0,
-        pitch: 0,
-        duration: 1500,
-      })
-    }}
+    center: [105, 25],
+    zoom: 1.2,
+    bearing: 0,
+    pitch: 0,
+    duration: 1500,
+    essential: true,
+  })
+}}
   >
     <svg
       width="18"
