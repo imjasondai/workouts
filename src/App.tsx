@@ -14,7 +14,10 @@ import { CalendarWidget } from './components/CalendarWidget'
 import { ProfileCard } from './components/ProfileCard'
 import { PersonalBest } from './components/PersonalBest'
 import { TracksPage } from './components/TracksPage'
-import { WorldFootprintMap } from './components/WorldFootprintMap'
+import {
+  WorldFootprintMap,
+  type ProvinceSelection,
+} from './components/WorldFootprintMap'
 import { CheckinPage } from './components/CheckinPage'
 import rawActivities from './static/activities.json'
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuLTI5IiwiYSI6ImNrZ3Q4Ym9mMDBqMGYyeXFvODV2dWl6YzQifQ.gSKoWF-fMjhzU67TuDezJQ'
@@ -28,7 +31,8 @@ export default function App() {
   const [filter, setFilter] = useState<SportFilter>('all')
   const [year, setYear] = useState<number | null>(null)
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
-  const [selectedProvince] = useState<string | null>(null)
+  const [selectedProvince, setSelectedProvince] =
+  useState<ProvinceSelection | null>(null)
   const [page, setPage] = useState<Page>('home')
   const [geographyStats, setGeographyStats] = useState<{
   level: 'countries' | 'provinces'
@@ -44,9 +48,14 @@ export default function App() {
 
   // Activities filtered to the selected province (for RouteMap)
   const provinceFiltered = useMemo(() => {
-    if (!selectedProvince) return filtered
-    return filtered.filter(a => extractActivityProvince(a) === selectedProvince)
-  }, [filtered, selectedProvince])
+  if (!selectedProvince) return filtered
+
+  const selectedIds = new Set(selectedProvince.activityIds)
+
+  return filtered.filter(activity =>
+    selectedIds.has(activity.run_id),
+  )
+}, [filtered, selectedProvince])
 
   return (
     <LocaleProvider>
@@ -79,7 +88,7 @@ export default function App() {
             <StatsCards activities={filtered} allActivities={activities} year={year} filter={filter} onSelectActivity={setSelectedActivity} />
             <ContributionHeatmap activities={filtered} year={heatmapYear} filter={filter} onSelectActivity={setSelectedActivity} />
             <ActivityLog
-              activities={filtered}
+  activities={provinceFiltered}
               years={years}
               year={year}
               setYear={setYear}
@@ -97,16 +106,20 @@ export default function App() {
   geographyStats={geographyStats}
 />
             <WorldFootprintMap
-              mapboxToken={MAPBOX_TOKEN}
-              dark={dark}
-              filter={filter}
-              activities={filtered}
-              onGeographyStatsChange={setGeographyStats}
-            />
+  mapboxToken={MAPBOX_TOKEN}
+  dark={dark}
+  filter={filter}
+  activities={filtered}
+  onProvinceSelect={selection => {
+    setSelectedProvince(selection)
+    setSelectedActivity(null)
+  }}
+  onGeographyStatsChange={setGeographyStats}
+/>
             <RouteMap
               activities={provinceFiltered}
               selectedActivity={selectedActivity}
-              selectedProvince={selectedProvince}
+              selectedProvince={selectedProvince?.name ?? null}
               dark={dark}
               onClearSelection={() => setSelectedActivity(null)}
             />
