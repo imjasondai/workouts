@@ -370,54 +370,72 @@ export function StatsCards({ activities, allActivities, year, filter, onSelectAc
             return { day: date.getDate(), hasActivity: dayActs.length > 0, isToday: i === todayIdx, acts: dayActs }
           })
           return (
-            <div className="mt-3 flex items-center gap-2">
-              <div className="flex flex-col items-center shrink-0 gap-0">
-                <div className="relative w-9 h-9">
-                  <svg className="w-9 h-9 text-[#f97316]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 23c-3.866 0-7-3.134-7-7 0-2.468 1.5-5.093 3.03-6.97.44-.54 1.47-.36 1.64.3.17.66.54 1.44 1.13 2.07.26-.94.76-2.06 1.57-3.04.81-.98 1.49-2.09 1.78-3.36.12-.53.71-.78 1.15-.46C17.09 6.46 19 9.58 19 13.5c0 5.247-3.134 9.5-7 9.5z"/>
-                  </svg>
-                  <span className="absolute bottom-[18%] left-0 right-0 flex items-center justify-center text-[9px] font-bold text-white leading-none">{currentWeekStreak}</span>
-                </div>
-                <span className="text-[11px] font-medium text-[var(--color-muted)] -mt-0.5">{t('weeks')}</span>
-              </div>
-              <div className="flex items-center gap-1.5 flex-1">
-                {weekDays.map((wd, i) => {
-                  const isPast = new Date(weekStart.getTime() + i * 86400000) <= now
-                  const color = dayColor(wd.acts)
-                  return (
-                    <div
-                      key={i}
-                      className={`flex flex-col items-center gap-0.5 ${wd.hasActivity ? 'cursor-pointer' : ''}`}
-                      onClick={() => { if (wd.acts.length > 0) onSelectActivity(wd.acts[0]) }}
-                    >
-                      <span className="text-[9px] text-[var(--color-muted)]">{weekLabels[i]}</span>
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium transition-opacity ${
-                          wd.hasActivity
-                            ? 'text-white hover:opacity-70'
-                            : wd.isToday
-                              ? 'ring-1 ring-[var(--color-text)] text-[var(--color-text)]'
-                              : isPast
-                                ? 'bg-[var(--color-border)] text-[var(--color-muted)]'
-                                : 'text-[var(--color-muted)]'
-                        }`}
-                        style={wd.hasActivity ? { backgroundColor: color } : {}}
-                      >
-                        {wd.day}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })()}
+  <div className="mt-3 min-w-0">
+    {/* Weekly streak summary */}
+    <div className="mb-2 flex items-center gap-1.5">
+      <svg
+        className="h-5 w-5 shrink-0 text-[#f97316]"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path d="M12 23c-3.866 0-7-3.134-7-7 0-2.468 1.5-5.093 3.03-6.97.44-.54 1.47-.36 1.64.3.17.66.54 1.44 1.13 2.07.26-.94.76-2.06 1.57-3.04.81-.98 1.49-2.09 1.78-3.36.12-.53.71-.78 1.15-.46C17.09 6.46 19 9.58 19 13.5c0 5.247-3.134 9.5-7 9.5z" />
+      </svg>
 
-        <div className="mt-3 flex items-center gap-2 text-sm text-[var(--color-muted)]">
-          <svg className="w-3.5 h-3.5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <span className="text-[11px] font-medium text-[var(--color-muted)]">
+        {currentWeekStreak} {t('weeks')}
+      </span>
+    </div>
+
+    {/* Seven days */}
+    <div className="grid w-full grid-cols-7 gap-1">
+      {weekDays.map((wd, i) => {
+        const isPast =
+          new Date(weekStart.getTime() + i * 86400000) <= now
+        const color = dayColor(wd.acts)
+
+        return (
+          <div
+            key={i}
+            className={`flex min-w-0 flex-col items-center gap-0.5 ${
+              wd.hasActivity ? 'cursor-pointer' : ''
+            }`}
+            onClick={() => {
+              if (wd.acts.length > 0) onSelectActivity(wd.acts[0])
+            }}
+          >
+            <span className="text-[9px] text-[var(--color-muted)]">
+              {weekLabels[i]}
+            </span>
+
+            <div
+              className={`flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-medium transition-opacity ${
+                wd.hasActivity
+                  ? 'text-white hover:opacity-70'
+                  : wd.isToday
+                    ? 'ring-1 ring-[var(--color-text)] text-[var(--color-text)]'
+                    : isPast
+                      ? 'bg-[var(--color-border)] text-[var(--color-muted)]'
+                      : 'text-[var(--color-muted)]'
+              }`}
+              style={wd.hasActivity ? { backgroundColor: color } : {}}
+            >
+              {wd.day}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  </div>
+)
+})()}
+
+        <div className="mt-3 flex min-w-0 items-start gap-1.5 text-xs leading-4 text-[var(--color-muted)]">
+  <svg className="mt-0.5 w-3.5 h-3.5 shrink-0 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
           </svg>
-          {t('longest')}: {longestStreak} {t('days')} / {longestWeekStreak} {t('weeks')}
+          <span className="min-w-0">
+  {t('longest')}: {longestStreak} {t('days')} / {longestWeekStreak} {t('weeks')}
+</span>
         </div>
       </div>
     </div>
