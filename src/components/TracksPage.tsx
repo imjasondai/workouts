@@ -104,12 +104,50 @@ function TrackMap({ activity, activities, dark }: {
       'line-color': ['match', ['get', 'type'], 'Run', '#f97316', 'Ride', '#3b82f6', 'Hike', '#22c55e', 'Swim', '#06b6d4', '#a855f7'],
       'line-width': 1.2, 'line-opacity': 0.5,
     }})
-    const allCoords = features.flatMap(f => f.geometry.coordinates as [number, number][])
-    if (!allCoords.length) return
-    const lngs = allCoords.map(c => c[0]).sort((a, b) => a - b)
-    const lats = allCoords.map(c => c[1]).sort((a, b) => a - b)
-    const t = Math.floor(lngs.length * 0.1)
-    m.fitBounds(new mapboxgl.LngLatBounds([lngs[t], lats[t]], [lngs[lngs.length - 1 - t], lats[lats.length - 1 - t]]), { padding: 30, maxZoom: 13 })
+    const routes = features
+  .map(feature => feature.geometry.coordinates as [number, number][])
+  .filter(route => route.length > 0)
+
+if (routes.length === 0) return
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b)
+  const middle = Math.floor(sorted.length / 2)
+
+  return sorted.length % 2
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2
+}
+
+const centerLng = median(routes.map(route => route[0][0]))
+const centerLat = median(routes.map(route => route[0][1]))
+const longitudeScale = Math.cos(centerLat * Math.PI / 180)
+
+function distanceFromCenter(route: [number, number][]): number {
+  const dx = (route[0][0] - centerLng) * longitudeScale
+  const dy = route[0][1] - centerLat
+  return dx * dx + dy * dy
+}
+
+const rankedRoutes = [...routes].sort(
+  (a, b) => distanceFromCenter(a) - distanceFromCenter(b),
+)
+
+const keepCount = Math.max(1, Math.ceil(rankedRoutes.length * 0.9))
+const mainRoutes = rankedRoutes.slice(0, keepCount)
+const bounds = new mapboxgl.LngLatBounds()
+
+for (const route of mainRoutes) {
+  for (const coordinate of route) {
+    bounds.extend(coordinate)
+  }
+}
+
+m.fitBounds(bounds, {
+  padding: 35,
+  maxZoom: 12.5,
+  duration: 1200,
+})
   })
 
   // Init map once
