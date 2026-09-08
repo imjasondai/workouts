@@ -632,13 +632,12 @@ refreshCountryStatsRef.current = null
 }, [activities, filter])
 
   return (
-    <section className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
-            <div className="relative [@media(pointer:coarse)]:[--globe-control-size:44px]">
-  <div
-    ref={containerRef}
-    className="w-full"
-    style={{ height: 280 }}
-  />
+    <section className="h-[313px] bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+  <div className="relative h-full [@media(pointer:coarse)]:[--globe-control-size:44px]">
+    <div
+      ref={containerRef}
+      className="w-full h-full"
+    />
 
   <button
     type="button"
