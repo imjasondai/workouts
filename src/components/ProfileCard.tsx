@@ -189,7 +189,7 @@ export function ProfileCard({
   }
 
   return (
-    <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:shadow-[var(--color-accent)]/5 hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/5">
+    <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5 lg:h-[248px] flex flex-col justify-center transition-all duration-300 hover:shadow-lg hover:shadow-[var(--color-accent)]/5 hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-accent)]/5">
       {/* Distance */}
       <div className="text-center">
         <p className="text-3xl font-bold font-mono flex items-center justify-center gap-2">
