@@ -14462,5 +14462,37 @@
 "elevation_gain": 20.0,
 "source": "strava",
 "streak": 1
+},
+{
+"run_id": 20302626744,
+"name": "Morning Run",
+"distance": 8012.5,
+"moving_time": "0:47:39",
+"type": "Run",
+"start_date": "2026-09-23 20:30:00+00:00",
+"start_date_local": "2026-09-24 04:30:00",
+"location_country": null,
+"summary_polyline": "oww}DkredVG?EAAMJo@XiATi@|ByHVs@n@{BTo@rAsEn@iBv@mBnAwBbAeB`AmARIPCnAFpA@~BWl@Qf@KzBo@~@i@t@[lAw@LEH@b@^RJz@JhATp@XpA^HFDXJhBNjABv@Fj@B~@LpA?l@@PNPRBf@?VGFIGq@HMf@Yv@Ef@Kf@[Z[b@o@~@mBdBmChEqIn@{@b@u@bBqBx@k@`DoCd@Uf@s@r@}@d@q@t@yAJ[Jo@La@NqA\\i@AUIe@k@eBKSc@m@Qm@S_@i@m@k@c@oAmA}AoAWO{@u@_@a@OWe@cAe@aBi@_C[o@Go@Mc@Ek@?c@NoCFq@NaADcAD[x@oDt@_C~@oBHUnAeB\\o@b@wAXsARwB?iAQu@M{@m@oAUm@_@o@]w@[oAWm@_AaBYo@o@cBw@gCIe@OuAEsA@u@QwAD{BH{A@iAD_@HUPS|Au@NOJWrAiDZmAJgA?g@C_@UqAOc@Yc@k@s@q@gA{A_B{@sAo@k@]u@_@Mk@_@u@i@{@u@_@i@Sc@_@a@iAeBgAsCO{@Ci@Io@]mBIaA?{@P_ACIFOFy@TcAZgCDORKLY\\_CJ]LIJAbAVvCj@L@DGASGGWECCAIFU@a@^mALMj@Gn@WTORYRMB?IH[FS`@MLq@RK@KAQ@GHWlAEh@EZ?BDF\\DFF@RCr@GPKNeA~@Yh@WbAe@tAANA`@Ir@Mj@?R^|C@TAPBn@`@rBRf@`@vAl@nAVd@v@n@p@|@v@h@d@~@^ZVf@DB@CA@DNp@p@",
+"average_heartrate": 125.0,
+"average_speed": 2.803,
+"elevation_gain": 19.0,
+"source": "strava",
+"streak": 2
+},
+{
+"run_id": 20302626578,
+"name": "Morning Ride",
+"distance": 5591.1,
+"moving_time": "0:17:57",
+"type": "Ride",
+"start_date": "2026-09-23 21:20:22+00:00",
+"start_date_local": "2026-09-24 05:20:22",
+"location_country": null,
+"summary_polyline": "q`u}D{`mdV`ApBh@~ATrAFt@@fBOpCOz@[n@_@^c@|@kAtCi@hB?\\MjACtB@t@F`ANhAVfA^nA^|@f@`At@t@f@r@`@x@Vv@Xb@n@xAv@zC`@rDBt@FL^TDD@HEl@Gb@c@dAYfAy@nCQx@Af@R~AARK\\QXUT_Al@s@Jw@AOBSPMb@[rAe@bECt@AhE\\rBXjAVr@Vd@h@p@~@~@bExCv@p@t@fAn@lAd@t@j@f@P\\lA~C`@vADTAVCHMNWRMLM^AT@VRbA@VCHIR[NoAVqAJYHMHg@f@_BhBcD`DaA|@Y\\g@~@u@|@{@d@Wb@uAvCs@lAu@bBuBtDyAtBm@bAu@fAiAlAa@\\a@PUBwAKo@a@u@WOIwC{C_@]QGSBQJs@r@o@r@cA|@mBtA]b@e@dAI`@E`AFhBd@dIH~@ARGN]FuBP{@AIBkENm@J}@RmAj@wClB{AdAg@f@q@h@[ZGBK?IM",
+"average_heartrate": 112.3,
+"average_speed": 5.191,
+"elevation_gain": 15.0,
+"source": "strava",
+"streak": 2
 }
 ]
